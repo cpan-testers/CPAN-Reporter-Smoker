@@ -1,0 +1,8 @@
+TODO list for Perl module CPAN::Reporter::Smoker
+
+- bring in CPAN::Reporter test support to actually test
+- create a minicpan in the t/ directory for testing
+- check recent files as well to pick up new developer versions
+- clear CPAN build files (or patch CPAN)
+- break out of test loop and recheck for updates after some period of delay
+
