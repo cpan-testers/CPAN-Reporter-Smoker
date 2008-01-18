@@ -18,6 +18,7 @@ $class->new(
         'File::Temp' => 0.20,
         'File::Spec' => 3.27,
         'Module::Build' => 0.2808,
+        'Probe::Perl' => 0,
     },
     build_requires  => {
         'Test::More'            => 0.74, # various features/fixes

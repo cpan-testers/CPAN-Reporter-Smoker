@@ -1,8 +1,21 @@
 TODO list for Perl module CPAN::Reporter::Smoker
 
-- bring in CPAN::Reporter test support to actually test
+# Bugs
+
+# High priority
+
+- check if CPAN::Reporter has tested before starting tests for a dist
+- bring in CPAN::Reporter t/*.t support to actually test
 - create a minicpan in the t/ directory for testing
+
+# Medium priority
+
+- prompt to continue or halt if CPAN sub process halts with signal
+- write real documentation
 - check recent files as well to pick up new developer versions
-- clear CPAN build files (or patch CPAN)
 - break out of test loop and recheck for updates after some period of delay
+
+# Low/Maybe
+
+- clear CPAN build files (or patch CPAN) instead of running in a subshell (?)
 

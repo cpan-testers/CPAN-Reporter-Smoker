@@ -8,6 +8,7 @@ use CPAN;
 use CPAN::HandleConfig;
 use File::Temp 0.20;
 use File::Spec;
+use Probe::Perl;
 
 use Exporter;
 our @ISA = 'Exporter';
@@ -17,6 +18,7 @@ our @EXPORT = qw/ start /; ## no critic Export
 # globals
 #--------------------------------------------------------------------------#
 
+my $perl = Probe::Perl->find_perl_interpreter;
 my $module_file = 'modules/01modules.index.html';
 
 #--------------------------------------------------------------------------#
@@ -44,7 +46,8 @@ sub start {
     # Start smoking
     for my $d ( @$dists ) {
         print "Testing $d\n" if DEBUG;
-        CPAN::Shell->report( $d );
+        system($perl, "-MCPAN", "-e", "report( '$d' )");
+        die "Halted with signal\n" if $? & 127;
     }
 
     return;
@@ -153,6 +156,7 @@ Things to talk about:
 
 * using a minicpan -- need for 01modules.index.html
 * skipfile
+* scan cache for cleanup
 
 == FUNCTIONS
 
