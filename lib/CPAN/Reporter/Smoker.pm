@@ -59,11 +59,11 @@ sub start {
         my $base = $dist->base_id;
         if ( CPAN::Reporter::History::have_tested( dist => $base ) ) {
             $CPAN::Frontend->mywarn( 
-                __PACKAGE__ . ": already tested $base\n");
+                "Smoker: already tested $base\n");
             next DIST;
         }
         else {
-            $CPAN::Frontend->mywarn( __PACKAGE__ . ": testing $base\n" );
+            $CPAN::Frontend->mywarn( "Smoker: testing $base\n\n" );
             system($perl, "-MCPAN", "-e", "report( '$d' )");
             _prompt_quit( $? & 127 ) if ( $? & 127 );
         }
@@ -142,11 +142,11 @@ sub _prompt_quit {
     my ($sig) = @_;
     # convert numeric to name
     if ( $sig =~ /\d+/ ) {
-        my @signals = eval { $Config{sig_name_init} };
-        $sig = $signals[$sig];
+        my @signals = split q{ }, $Config{sig_name};
+        $sig = $signals[$sig] || '???';
     }
     $CPAN::Frontend->myprint(
-        "\nCPAN testing halted on SIG$sig.  Continue (y/n)?\n"
+        "\nCPAN testing halted on SIG$sig.  Continue (y/n)? [n]\n"
     );
     my $answer = <>;
     exit 0 unless substr( lc($answer), 0, 1) eq 'y';
@@ -188,6 +188,7 @@ Things to talk about:
 * using a minicpan -- need for 01modules.index.html
 * skipfile
 * scan cache for cleanup
+* cpan config -- _verbosities
 
 == FUNCTIONS
 
