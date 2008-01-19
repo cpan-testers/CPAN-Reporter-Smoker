@@ -8,21 +8,97 @@ SYNOPSIS
          $ perl -MCPAN::Reporter::Smoker -e start
 
 DESCRIPTION
-    Rudimentary smoke tester for CPAN Testers, building upon CPAN::Reporter.
+    Rudimentary smoke tester for CPAN Testers, built upon CPAN::Reporter.
 
-    Under development.
+    Currently, CPAN::Reporter::Smoker requires zero independent
+    configuration; instead it uses configuration settings from CPAN.pm and
+    CPAN::Reporter.
+
+    Once started, it retrieves a list of distributions from the configured
+    CPAN mirror and begins testing them in reverse order of upload. It will
+    skip any distribution which has already had a report sent by
+    CPAN::Reporter.
+
+    Features (or bugs, depending on your point of view):
+
+    *   No configuration needed
+
+    *   Tests each distribution as a separate CPAN process -- each
+        distribution has prerequisites like build_requires satisfied from
+        scratch
+
+    *   Continues until interrupted with CTRL-C
+
+    Current limitations:
+
+    *   Does not test developer/alpha versions of distributions
+
+    *   Does not check for new distributions to test while running, only
+        when starting up
+
+    *   Does not attempt to retest distributions that had reports discarded
+        because of prerequisites that could not be satisfied
+
+HINTS
+  CPAN::Mini
+    Because distributions must be retrieved from a CPAN mirror, the smoker
+    may cause heavy network load and will reptitively download common build
+    prerequisites.
+
+    An alternative is to use CPAN::Mini to create a local CPAN mirror and to
+    point CPAN's "urllist" to the local mirror.
+
+         $ cpan
+         cpan> o conf urllist unshift file:///path/to/minicpan
+         cpan> o conf commit
+
+    However, CPAN::Reporter::Smoker needs the 01modules.index.html file,
+    which CPAN::Mini does not mirror by default. Add it to a .minicpanrc
+    file in your home directory to include it in your local CPAN mirror.
+
+         also_mirror: modules/01modules.index.html
+
+  Skip files
+    CPAN::Reporter (1.07_01 or later) supports skipfiles to prevent copying
+    authors on reports or from sending reports at all for certain
+    distributions or authors' modules. Use these to stop sending reports if
+    someone complains. See CPAN::Reporter::Config for more details.
+
+  CPAN cache bloat
+    CPAN will use a lot of scratch space to download, build and test
+    modules. Use CPAN's built-in cache management configuration to let it
+    purge the cache periodically if you don't want to do this manually.
+
+         $ cpan
+         cpan> o conf init build_cache scan_cache
+         cpan> o conf commit
+
+  CPAN verbosity
+    Recent versions of CPAN are verbose by default, but include some lesser
+    known configuration settings to minimize this for untarring
+    distributions and for loading support modules. Setting the verbosity for
+    these to 'none' will minimize some of the clutter to the screen as
+    distributions are tested.
+
+         $ cpan
+         cpan> o conf init /verbosity/
+         cpan> o conf commit
 
 USAGE
-    Things to talk about:
-
-    *   using a minicpan -- need for 01modules.index.html
-
-    *   skipfile
-
-  FUNCTIONS
   "start()"
     Starts smoke testing using defaults already in CPAN::Config and
-    CPAN::Reporter's .cpanreporter directory.
+    CPAN::Reporter's .cpanreporter directory. Runs until the process is
+    halted with CTRL-C or otherwise killed.
+
+ENVIRONMENT
+    Automatically sets the following environment variables to true values
+    while running:
+
+    *   "AUTOMATED_TESTING" -- signal that tests are being run by an
+        automated smoke testing program (i.e. don't expect interactivity)
+
+    *   "PERL_MM_USE_DEFAULT" -- accept ExtUtils::MakeMaker prompt()
+        defaults
 
 BUGS
     Please report any bugs or feature using the CPAN Request Tracker. Bugs
@@ -33,6 +109,8 @@ BUGS
     to an existing test-file that illustrates the bug or desired feature.
 
 SEE ALSO
+    *   CPAN
+
     *   CPAN::Reporter
 
     *   CPAN::Testers

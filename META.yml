@@ -10,11 +10,12 @@ resources:
   repository: http://dagolden.googlecode.com/svn/
 requires:
   CPAN: 1.92
-  CPAN::Reporter: 1.0602
+  CPAN::Reporter: 1.07_02
   File::Spec: 3.27
   File::Temp: 0.2
   IO::File: 0
   Module::Build: 0.2808
+  Probe::Perl: 0
   perl: 5.006
 build_requires:
   Test::More: 0.74
