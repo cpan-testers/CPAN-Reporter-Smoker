@@ -4,6 +4,8 @@ TODO list for Perl module CPAN::Reporter::Smoker
 
 # High priority
 
+- use send_skipfile before even trying to test -- or use own custom one
+
 - check if CPAN::Reporter has tested before starting tests for a dist
     - check last report found ?!?
     
@@ -12,7 +14,6 @@ TODO list for Perl module CPAN::Reporter::Smoker
 
 # Medium priority
 
-- write real documentation
 - check recent files as well to pick up new developer versions
 - break out of test loop and recheck for updates after some period of delay
 

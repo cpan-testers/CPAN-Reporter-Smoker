@@ -178,7 +178,8 @@ This documentation describes version %%VERSION%%.
 
 = DESCRIPTION
 
-Rudimentary smoke tester for CPAN Testers, built upon [CPAN::Reporter].  
+Rudimentary smoke tester for CPAN Testers, built upon [CPAN::Reporter].  Use
+at your own risk.  It requires CPAN::Reporter 1.07_02 or higher.
 
 Currently, CPAN::Reporter::Smoker requires zero independent configuration;
 instead it uses configuration settings from CPAN.pm and CPAN::Reporter.
@@ -197,6 +198,7 @@ has prerequisites like build_requires satisfied from scratch
 Current limitations:
 
 * Does not test developer/alpha versions of distributions
+* Doesn't check skip files before handing off to CPAN to test
 * Does not check for new distributions to test while running, only when
 starting up
 * Does not attempt to retest distributions that had reports discarded because 

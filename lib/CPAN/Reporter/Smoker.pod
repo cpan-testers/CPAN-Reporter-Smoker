@@ -16,7 +16,8 @@ This documentation describes version 0.01_01.
 
 =head1 DESCRIPTION
 
-Rudimentary smoke tester for CPAN Testers, built upon L<CPAN::Reporter>.  
+Rudimentary smoke tester for CPAN Testers, built upon L<CPAN::Reporter>.  Use
+at your own risk.  It requires CPAN::Reporter 1.07_02 or higher.
 
 Currently, CPAN::Reporter::Smoker requires zero independent configuration;
 instead it uses configuration settings from CPAN.pm and CPAN::Reporter.
@@ -51,6 +52,10 @@ Current limitations:
 =item *
 
 Does not test developerE<sol>alpha versions of distributions
+
+=item *
+
+Doesn't check skip files before handing off to CPAN to test
 
 =item *
 
