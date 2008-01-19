@@ -5,6 +5,7 @@ use warnings;
 our $VERSION = '0.01_01'; 
 $VERSION = eval $VERSION;
 
+use Config;
 use CPAN; 
 use CPAN::HandleConfig;
 use CPAN::Reporter::History;
@@ -22,6 +23,9 @@ our @EXPORT = qw/ start /; ## no critic Export
 
 my $perl = Probe::Perl->find_perl_interpreter;
 my $module_file = 'modules/01modules.index.html';
+my $tmp_dir = File::Temp->newdir( 'CPAN-Reporter-Smoker-XXXXXXX', 
+    DIR => File::Spec->tmpdir,
+);
 
 #--------------------------------------------------------------------------#
 # start -- start automated smoking
@@ -45,6 +49,9 @@ sub start {
         or die "Couldn't get '$module_file' from your CPAN mirror. Halting\n";
     my $dists = _parse_module_index( $index );
     
+    # Win32 SIGINT propogates all the way to us, so trap it
+    local $SIG{INT} = \&_prompt_quit;
+
     # Start smoking
     DIST:
     for my $d ( @$dists ) {
@@ -58,7 +65,7 @@ sub start {
         else {
             $CPAN::Frontend->mywarn( __PACKAGE__ . ": testing $base\n" );
             system($perl, "-MCPAN", "-e", "report( '$d' )");
-            die "Halted with signal\n" if $? & 127;
+            _prompt_quit( $? & 127 ) if ( $? & 127 );
         }
     }
 
@@ -96,9 +103,6 @@ my %months = (
 #--------------------------------------------------------------------------#
 
 sub _get_module_index {
-    my $tmp_dir = File::Temp->newdir( 'CPAN-Reporter-Smoker-XXXXXXX', 
-        DIR => File::Spec->tmpdir,
-    );
     my $local_file = File::Spec->catfile( $tmp_dir, 'module_index' );
     return CPAN::FTP->localize( $module_file, $local_file ); 
 }
@@ -132,6 +136,21 @@ sub _parse_module_index {
     }
 
     return [ sort { $dists{$b} <=> $dists{$a} } keys %dists ];
+}
+
+sub _prompt_quit {
+    my ($sig) = @_;
+    # convert numeric to name
+    if ( $sig =~ /\d+/ ) {
+        my @signals = eval { $Config{sig_name_init} };
+        $sig = $signals[$sig];
+    }
+    $CPAN::Frontend->myprint(
+        "\nCPAN testing halted on SIG$sig.  Continue (y/n)?\n"
+    );
+    my $answer = <>;
+    exit 0 unless substr( lc($answer), 0, 1) eq 'y';
+    return;
 }
 
 1; #modules must return true
