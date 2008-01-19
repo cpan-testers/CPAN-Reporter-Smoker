@@ -13,7 +13,7 @@ $class->new(
     requires        => {
         'perl' => 5.006,
         'CPAN' => 1.92,
-        'CPAN::Reporter' => 1.0602,
+        'CPAN::Reporter' => 1.0702,
         'IO::File' => 0,
         'File::Temp' => 0.20,
         'File::Spec' => 3.27,

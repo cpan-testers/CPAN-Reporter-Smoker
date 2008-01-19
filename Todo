@@ -5,6 +5,8 @@ TODO list for Perl module CPAN::Reporter::Smoker
 # High priority
 
 - check if CPAN::Reporter has tested before starting tests for a dist
+    - check last report found ?!?
+    
 - bring in CPAN::Reporter t/*.t support to actually test
 - create a minicpan in the t/ directory for testing
 

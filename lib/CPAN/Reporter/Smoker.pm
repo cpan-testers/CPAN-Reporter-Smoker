@@ -3,9 +3,11 @@ use 5.006;
 use strict;
 use warnings;
 our $VERSION = '0.01_01'; 
+$VERSION = eval $VERSION;
 
 use CPAN; 
 use CPAN::HandleConfig;
+use CPAN::Reporter::History;
 use File::Temp 0.20;
 use File::Spec;
 use Probe::Perl;
@@ -44,10 +46,20 @@ sub start {
     my $dists = _parse_module_index( $index );
     
     # Start smoking
+    DIST:
     for my $d ( @$dists ) {
-        print "Testing $d\n" if DEBUG;
-        system($perl, "-MCPAN", "-e", "report( '$d' )");
-        die "Halted with signal\n" if $? & 127;
+        my $dist = CPAN::Shell->expandany($d);
+        my $base = $dist->base_id;
+        if ( CPAN::Reporter::History::have_tested( dist => $base ) ) {
+            $CPAN::Frontend->mywarn( 
+                __PACKAGE__ . ": already tested $base\n");
+            next DIST;
+        }
+        else {
+            $CPAN::Frontend->mywarn( __PACKAGE__ . ": testing $base\n" );
+            system($perl, "-MCPAN", "-e", "report( '$d' )");
+            die "Halted with signal\n" if $? & 127;
+        }
     }
 
     return;
