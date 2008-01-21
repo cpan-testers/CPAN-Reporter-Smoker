@@ -1,4 +1,5 @@
 CPAN
+CTRL
 DAGOLDEN
 MSWin
 README
@@ -8,4 +9,8 @@ XS
 cpanreporter
 html
 minicpan
+minicpanrc
+reptitively
 skipfile
+skipfiles
+untarring

@@ -4,20 +4,34 @@ TODO list for Perl module CPAN::Reporter::Smoker
 
 # High priority
 
-- use send_skipfile before even trying to test -- or use own custom one
+- bring in CPAN::Reporter t/*.t support to actually test functionality
 
-- check if CPAN::Reporter has tested before starting tests for a dist
-    - check last report found ?!?
-    
-- bring in CPAN::Reporter t/*.t support to actually test
 - create a minicpan in the t/ directory for testing
+    - will need to figure out about alpha modules as well
 
 # Medium priority
 
+- use CPAN::Reporter's send_skipfile before even trying to test 
+   - or use own custom one?
+   - or use distroprefs?  skip even things in dependencies?
+
 - check recent files as well to pick up new developer versions
+    - parse CPAN/RECENT file for alpha versions and stick them at the 
+      front of the queue
+    - possibly don't put them in the queue if we can tell they've been
+      tested, but this wouldn't be a lazy check the way the rest is, so
+      maybe just skip it
+
 - break out of test loop and recheck for updates after some period of delay
 
+- retest discards after some period of time
+    - or after failing deps are updated -- but how to discover what these are?
+      would need changes to CPAN::Reporter history logging to separately
+      log DISCARD with the missing dependencies
+
 # Low/Maybe
+
+- try Parse::CPAN::Meta as a way of getting dependencies?
 
 - find a way to clear CPAN programmatically instead of running in a subshell
   or else find a way to patch CPAN's set_perl5lib to restrict to only

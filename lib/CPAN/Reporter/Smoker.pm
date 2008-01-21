@@ -3,7 +3,7 @@ use 5.006;
 use strict;
 use warnings;
 our $VERSION = '0.01_01'; 
-$VERSION = eval $VERSION;
+$VERSION = eval $VERSION; ## no critic
 
 use Config;
 use CPAN; 
@@ -204,6 +204,13 @@ starting up
 * Does not attempt to retest distributions that had reports discarded because 
 of prerequisites that could not be satisfied
 
+== Warning
+
+Smoke testing downloads and runs programs other people have uploaded to CPAN.
+These programs could do *anything* to your system, including deleting
+everything on it.  Do not run CPAN::Reporter::Smoker unless you are prepared to
+take these risks.  
+
 = HINTS
 
 == CPAN::Mini
@@ -225,12 +232,19 @@ home directory to include it in your local CPAN mirror.
 
     also_mirror: modules/01modules.index.html
 
+Note that CPAN::Mini does not mirror developer versions.  When
+CPAN::Reporter::Smoker adds the ability to smoke test developer versions, a
+network CPAN Mirror will be needed in the urllist to retrieve these.
+
 == Skip files
 
 CPAN::Reporter (1.07_01 or later) supports skipfiles to prevent copying authors
 on reports or from sending reports at all for certain distributions or authors'
 modules.  Use these to stop sending reports if someone complains.  See
 [CPAN::Reporter::Config] for more details.
+
+A future version may utilize these to avoid testing modules in the skiplist
+instead of taking the time to test them and then just not send the report.
 
 == CPAN cache bloat
 
