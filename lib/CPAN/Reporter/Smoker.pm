@@ -262,7 +262,7 @@ instead it uses configuration settings from CPAN.pm and CPAN::Reporter.
 
 Once started, it retrieves a list of distributions from the configured CPAN
 mirror and begins testing them in reverse order of upload.  It will skip any
-distribution which has already had a report sent by CPAN::Reporter.
+distribution which has already had a report sent by CPAN::Reporter.  
 
 Features (or bugs, depending on your point of view):
 
@@ -273,7 +273,6 @@ has prerequisites like build_requires satisfied from scratch
 
 Current limitations:
 
-* Does not test developer/alpha versions of distributions
 * Doesn't check skip files before handing off to CPAN to test
 * Does not check for new distributions to test while running, only when
 starting up
@@ -289,6 +288,20 @@ take these risks.
 
 = HINTS
 
+== Selection of distributions to test
+
+Note that only the most recently uploaded developer and normal releases will be
+tested.  In otherwords, if Foo-Bar-0.01, Foo-Bar-0.02, Foo-Bar-0.03_01 and
+Foo-Bar-0.03_02 are on CPAN, only Foo-Bar-0.02 and Foo-Bar 0.03_02 will be
+tested, and in reverse order of when they were uploaded.
+
+Perl, parrot or kurila distributions will not be tested.  
+
+Also, anything that doesn't appear to be a "normal" distribution will not be
+tested.  To be in the queue for smoke testing, distributions must be in an
+author's base CPAN directory with an archive suffix and a sensible version
+number.
+
 == CPAN::Mini
 
 Because distributions must be retrieved from a CPAN mirror, the smoker may
@@ -302,19 +315,18 @@ point CPAN's {urllist} to the local mirror.
     cpan> o conf urllist unshift file:///path/to/minicpan
     cpan> o conf commit
 
-However, CPAN::Reporter::Smoker needs the 01modules.index.html file, which
+However, CPAN::Reporter::Smoker needs the {find-ls.gz} file, which
 CPAN::Mini does not mirror by default.  Add it to a .minicpanrc file in your
 home directory to include it in your local CPAN mirror.
 
-    also_mirror: modules/01modules.index.html
+    also_mirror: indices/find-ls.gz
 
-Note that CPAN::Mini does not mirror developer versions.  When
-CPAN::Reporter::Smoker adds the ability to smoke test developer versions, a
-network CPAN Mirror will be needed in the urllist to retrieve these.
+Note that CPAN::Mini does not mirror developer versions.  Therefore, a
+live, network CPAN Mirror will be needed in the urllist to retrieve these.
 
 == Skip files
 
-CPAN::Reporter (1.07_01 or later) supports skipfiles to prevent copying authors
+CPAN::Reporter (since 1.07_01) supports skipfiles to prevent copying authors
 on reports or from sending reports at all for certain distributions or authors'
 modules.  Use these to stop sending reports if someone complains.  See
 [CPAN::Reporter::Config] for more details.
