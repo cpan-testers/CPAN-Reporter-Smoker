@@ -190,31 +190,6 @@ sub _parse_module_index {
     return [ sort { $dists{$b} <=> $dists{$a} } keys %dists ];
 }
 
-sub _old_parse_module_index {
-    my ($filename) = @_;
-    my $fh = IO::File->new( $filename );
-
-    INTRO:
-    while ( my $line = <$fh> ) {
-        chomp $line;
-        if ( $line =~ /^<pre>/ ) {
-            # skip 3 more lines
-            <$fh> for 0 .. 2;
-            last INTRO;
-        }
-    }
-
-    my %dists;
-    while ( my $line = <$fh> ) {
-        next unless substr($line,0,1) eq q{ }; # unless starts with space
-        my ($dist,$day,$month,$year) = $line =~ $module_index_re;
-        next unless $dist;
-        $dists{$dist} = $year . $months{$month} . $day;
-    }
-
-    return [ sort { $dists{$b} <=> $dists{$a} } keys %dists ];
-}
-
 sub _prompt_quit {
     my ($sig) = @_;
     # convert numeric to name
