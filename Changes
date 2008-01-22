@@ -1,5 +1,9 @@
 Revision history for Perl module CPAN::Reporter::Smoker
 
+0.01_02 Mon Jan 21 19:28:58 EST 2008
+
+    - Added support for smoking developer releases 
+
 0.01_01 Sun Jan 20 22:55:20 EST 2008
 
     - initial alpha release
