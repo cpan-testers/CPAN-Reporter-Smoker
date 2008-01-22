@@ -21,6 +21,8 @@ TODO list for Perl module CPAN::Reporter::Smoker
     - possibly don't put them in the queue if we can tell they've been
       tested, but this wouldn't be a lazy check the way the rest is, so
       maybe just skip it
+    - don't put superceded ones in the queue -- i.e. don't put _01 in queue
+      if there is an _02, etc. 
 
 - break out of test loop and recheck for updates after some period of delay
 
