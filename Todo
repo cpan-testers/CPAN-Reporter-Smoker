@@ -4,10 +4,11 @@ TODO list for Perl module CPAN::Reporter::Smoker
 
 # High priority
 
+*** DOS2UNIX all files in minicpan ***
+
 - bring in CPAN::Reporter t/*.t support to actually test functionality
 
-- create a minicpan in the t/ directory for testing
-    - will need to figure out about alpha modules as well
+- create alpha modules for minicpan
 
 # Medium priority
 
