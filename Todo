@@ -27,6 +27,8 @@ TODO list for Perl module CPAN::Reporter::Smoker
 
 # Low/Maybe
 
+- logging STDERR to a file -- parameter to start()?
+
 - add some process control -- keep a proces ID in a run file and add a stop()
   commnd to stop a running process.
 
