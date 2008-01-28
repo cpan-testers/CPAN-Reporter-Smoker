@@ -4,12 +4,13 @@ TODO list for Perl module CPAN::Reporter::Smoker
 
 # High priority
 
-*** fix .cpan location in MyConfig.pm ***
-*** DOS2UNIX all files in minicpan ***
+- create CPAN::MyConfig file
+    -- fix .cpan location in MyConfig.pm 
 
 - bring in CPAN::Reporter t/*.t support to actually test functionality
 
-- create alpha modules for minicpan
+- create alpha modules for minicpan 
+    - edit file-ls.gz
 
 - allow stopping loop if all modules tested -- need for testing
 
