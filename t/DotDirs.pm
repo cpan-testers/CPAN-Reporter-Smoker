@@ -29,13 +29,14 @@ sub prepare_cpan_reporter {
 }
 
 sub cleanup_cpan {
-    # readonly in blib directories causes problems on Win32 (of course)
-    find sub { chmod 0666, $_; unlink if -f }, $dot_cpan;
+    # rmtree on Win32 can fail for odd reasons, so try to force early cleanup
+    find sub { if ( -f ) { chmod 0666, $_; unlink } }, $dot_cpan;
     rmtree $dot_cpan;
 }
 
 sub cleanup_cpanreporter {
-    find sub { chmod 0666, $_; unlink if -f }, $dot_cpan_reporter;
+    # rmtree on Win32 can fail for odd reasons, so try to force early cleanup
+    find sub { if ( -f ) { chmod 0666, $_; unlink } }, $dot_cpan_reporter;
     rmtree $dot_cpan_reporter;
 }
 
