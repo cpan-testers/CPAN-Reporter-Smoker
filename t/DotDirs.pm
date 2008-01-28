@@ -13,14 +13,24 @@ sub _d ($) {File::Spec->rel2abs(File::Spec->catdir(split /\//, shift));}
 my $dot_cpan = _d"t/dot-cpan";
 my $dot_cpan_reporter = _d"t/dot-cpanreporter";
 
+sub cleanup {
+    my $dir = shift;
+    # suppress warnings
+    local $SIG{__WARN__} = sub { 1 };
+    # try more than once -- Win32 sometimes fails due to apparent timing issues
+    for ( 0 .. 1 ) {
+        rmtree $dir if -d $dir;
+    }
+}
+
 sub prepare_cpan {
-    cleanup_cpan() if -d $dot_cpan;
+    cleanup $dot_cpan;
     mkpath $dot_cpan;
     return $dot_cpan;
 }
 
 sub prepare_cpan_reporter {
-    cleanup_cpanreporter() if -d $dot_cpan_reporter;
+    cleanup $dot_cpan_reporter;
     mkpath $dot_cpan_reporter;
     my $config = IO::File->new( _f"$dot_cpan_reporter\/config.ini", ">" );
     print {$config} <DATA>;
@@ -28,21 +38,9 @@ sub prepare_cpan_reporter {
     return $dot_cpan_reporter;
 }
 
-sub cleanup_cpan {
-    # rmtree on Win32 can fail for odd reasons, so try to force early cleanup
-    find sub { if ( -f ) { chmod 0666, $_; unlink } }, $dot_cpan;
-    rmtree $dot_cpan;
-}
-
-sub cleanup_cpanreporter {
-    # rmtree on Win32 can fail for odd reasons, so try to force early cleanup
-    find sub { if ( -f ) { chmod 0666, $_; unlink } }, $dot_cpan_reporter;
-    rmtree $dot_cpan_reporter;
-}
-
 END { 
-    cleanup_cpan;
-    cleanup_cpanreporter;
+    cleanup $dot_cpan;
+    cleanup $dot_cpan_reporter;
 }
 
 1;
