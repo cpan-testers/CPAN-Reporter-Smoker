@@ -1,5 +1,9 @@
 Revision history for Perl module CPAN::Reporter::Smoker
 
+0.02 Mon Jan 28 10:22:42 EST 2008
+
+    - Added rudimentary test of smoke testing
+
 0.01_02 Mon Jan 21 19:28:58 EST 2008
 
     - Added support for smoking developer releases 
