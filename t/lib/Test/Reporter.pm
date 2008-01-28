@@ -12,6 +12,10 @@ sub send {
     return 1 
 } 
 
+sub address {
+    return "nowhere"
+}
+
 sub subject {
     my $self = shift;
     return uc($self->grade) . ' ' . $self->distribution .

@@ -1,6 +1,7 @@
 CPAN
 CTRL
 DAGOLDEN
+Foo
 MSWin
 README
 STDERR
@@ -8,9 +9,13 @@ STDOUT
 XS
 cpanreporter
 html
+kurila
 minicpan
 minicpanrc
+otherwords
 reptitively
 skipfile
 skipfiles
+skiplist
 untarring
+urllist

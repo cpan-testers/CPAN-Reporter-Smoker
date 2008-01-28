@@ -11,7 +11,7 @@ WriteMakefile
           'PREREQ_PM' => {
                            'IO::File' => 0,
                            'File::Spec' => '3.27',
-                           'CPAN::Reporter' => '1.07_02',
+                           'CPAN::Reporter' => '1.08',
                            'Test::More' => '0.74',
                            'Probe::Perl' => 0,
                            'File::Temp' => '0.2',

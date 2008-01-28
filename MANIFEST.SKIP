@@ -1,3 +1,7 @@
+# scratch files from testing if left around
+^t/dot-cpan
+^t/dot-cpanreporter
+
 # Version control files and dirs.
 \bRCS\b
 \bCVS\b

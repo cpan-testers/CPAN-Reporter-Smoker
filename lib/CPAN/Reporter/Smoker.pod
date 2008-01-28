@@ -8,7 +8,7 @@ CPAN::Reporter::Smoker - Turnkey CPAN Testers smoking
 
 =head1 VERSION
 
-This documentation describes version 0.01_02.
+This documentation describes version 0.02.
 
 =head1 SYNOPSIS
 
@@ -17,7 +17,7 @@ This documentation describes version 0.01_02.
 =head1 DESCRIPTION
 
 Rudimentary smoke tester for CPAN Testers, built upon L<CPAN::Reporter>.  Use
-at your own risk.  It requires CPAN::Reporter 1.07_02 or higher.
+at your own risk.  It requires CPAN::Reporter 1.08 or higher.
 
 Currently, CPAN::Reporter::Smoker requires zero independent configuration;
 instead it uses configuration settings from CPAN.pm and CPAN::Reporter.
@@ -41,7 +41,7 @@ has prerequisites like build_requires satisfied from scratch
 
 =item *
 
-Continues until interrupted with CTRL-C
+Continues until finished or until interrupted with CTRL-C
 
 =back
 
@@ -145,9 +145,9 @@ minimize some of the clutter to the screen as distributions are tested.
 
 =head2 C<<< start() >>>
 
-Starts smoke testing using defaults already in CPAN::Config and 
-CPAN::Reporter's .cpanreporter directory.  Runs until the process is 
-halted with CTRL-C or otherwise killed.
+Starts smoke testing using defaults already in CPAN::Config and
+CPAN::Reporter's .cpanreporter directory.  Runs until all distributions are
+tested or the process is halted with CTRL-C or otherwise killed.
 
 =head1 ENVIRONMENT
 

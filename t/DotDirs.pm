@@ -6,8 +6,8 @@ use File::Path qw(rmtree mkpath);
 use File::Spec ();
 use IO::File;
 
-sub _f ($) {File::Spec->catfile(split /\//, shift);}
-sub _d ($) {File::Spec->catdir(split /\//, shift);}
+sub _f ($) {File::Spec->rel2abs(File::Spec->catfile(split /\//, shift));}
+sub _d ($) {File::Spec->rel2abs(File::Spec->catdir(split /\//, shift));}
 
 my $dot_cpan = _d"t/dot-cpan";
 my $dot_cpan_reporter = _d"t/dot-cpanreporter";
@@ -23,6 +23,7 @@ sub prepare_cpan_reporter {
     mkpath $dot_cpan_reporter;
     my $config = IO::File->new( _f"$dot_cpan_reporter\/config.ini", ">" );
     print {$config} <DATA>;
+    $config->close;
     return $dot_cpan_reporter;
 }
 
