@@ -8,7 +8,7 @@ use File::Spec;
 use IO::CaptureOutput qw/capture/;
 use t::DotDirs;
 
-plan tests =>  4 ;
+plan tests =>  5 ;
 
 #--------------------------------------------------------------------------#
 # Setup test environment
@@ -41,6 +41,8 @@ my ($stdout, $stderr);
 #--------------------------------------------------------------------------#
 
 require_ok( 'CPAN::Reporter::Smoker' );
+
+can_ok( 'CPAN::Reporter::Smoker', 'start' );
 
 pass ("Starting simulated smoke testing");
 capture sub { CPAN::Reporter::Smoker::start() } => \($stdout, $stderr);
