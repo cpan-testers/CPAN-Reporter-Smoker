@@ -24,9 +24,9 @@ $class->new(
     build_requires => {
         'Cwd' => 0,
         'File::Path' => 0,
-        'IO::CaptureOutput' => 1.06,
+        'IO::CaptureOutput' => 1.03,
         'IO::File' => 0,
-        'Test::More' => 0.74,
+        'Test::More' => 0.72,
     },
     meta_merge            => { 
         no_index => { 

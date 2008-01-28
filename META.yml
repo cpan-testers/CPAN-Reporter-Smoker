@@ -10,15 +10,20 @@ resources:
   repository: http://dagolden.googlecode.com/svn/
 requires:
   CPAN: 1.92
-  CPAN::Reporter: 1.08
+  CPAN::HandleConfig: 0
+  CPAN::Reporter::History: 1.08
+  CPAN::Tarzip: 0
   File::Spec: 3.27
   File::Temp: 0.2
-  IO::File: 0
   Module::Build: 0.2808
-  Probe::Perl: 0
+  Probe::Perl: 0.01
   perl: 5.006
 build_requires:
-  Test::More: 0.74
+  Cwd: 0
+  File::Path: 0
+  IO::CaptureOutput: 1.03
+  IO::File: 0
+  Test::More: 0.72
 provides:
   CPAN::Reporter::Smoker:
     file: lib/CPAN/Reporter/Smoker.pm

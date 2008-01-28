@@ -10,13 +10,18 @@ WriteMakefile
           'VERSION_FROM' => 'lib/CPAN/Reporter/Smoker.pm',
           'PREREQ_PM' => {
                            'IO::File' => 0,
+                           'IO::CaptureOutput' => '1.03',
                            'File::Spec' => '3.27',
-                           'CPAN::Reporter' => '1.08',
-                           'Test::More' => '0.74',
-                           'Probe::Perl' => 0,
+                           'CPAN::Tarzip' => 0,
+                           'CPAN::Reporter::History' => '1.08',
+                           'Test::More' => '0.72',
+                           'Probe::Perl' => '0.01',
                            'File::Temp' => '0.2',
+                           'File::Path' => 0,
                            'CPAN' => '1.92',
-                           'Module::Build' => '0.2808'
+                           'Module::Build' => '0.2808',
+                           'CPAN::HandleConfig' => 0,
+                           'Cwd' => 0
                          }
         )
 ;
