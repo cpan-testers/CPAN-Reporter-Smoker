@@ -4,7 +4,6 @@ package t::DotDirs;
 
 use File::Path qw(rmtree mkpath);
 use File::Spec ();
-use File::Find;
 use IO::File;
 
 sub _f ($) {File::Spec->rel2abs(File::Spec->catfile(split /\//, shift));}

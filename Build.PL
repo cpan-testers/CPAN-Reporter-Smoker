@@ -10,18 +10,23 @@ $class->new(
     license             => 'apache',
     create_readme       => 1,
     create_makefile_pl  => 'traditional',
-    requires        => {
-        'perl' => 5.006,
-        'CPAN' => 1.92,
-        'CPAN::Reporter' => '1.08',
-        'IO::File' => 0,
-        'File::Temp' => 0.20,
-        'File::Spec' => 3.27,
+    requires => {
+        perl => 5.006,
+        'CPAN' => 1.92, 
+        'CPAN::HandleConfig' => 0, 
+        'CPAN::Reporter::History' => 1.08,
+        'CPAN::Tarzip' => 0, 
+        'File::Spec' => 3.27, 
+        'File::Temp' => 0.20, 
+        'Probe::Perl' => 0.01,
         'Module::Build' => 0.2808,
-        'Probe::Perl' => 0,
     },
-    build_requires  => {
-        'Test::More'            => 0.74, # various features/fixes
+    build_requires => {
+        'Cwd' => 0,
+        'File::Path' => 0,
+        'IO::CaptureOutput' => 1.06,
+        'IO::File' => 0,
+        'Test::More' => 0.74,
     },
     meta_merge            => { 
         no_index => { 
@@ -35,3 +40,4 @@ $class->new(
         },
     },
 )->create_build_script;
+
