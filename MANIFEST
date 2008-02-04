@@ -18,6 +18,9 @@ t/CPAN/authors/id/D/DA/DAGOLDEN/Bogus-Fail-0.01.tar.gz
 t/CPAN/authors/id/D/DA/DAGOLDEN/Bogus-Pass-0.01.tar.gz
 t/CPAN/authors/id/D/DA/DAGOLDEN/Bogus-PL-Fail-0.01.tar.gz
 t/CPAN/authors/id/D/DA/DAGOLDEN/CHECKSUMS
+t/CPAN/authors/id/J/JH/JHI/Bogus-Fail-0.01_01.tar.gz
+t/CPAN/authors/id/P/PE/PETDANCE/CHECKSUMS
+t/CPAN/authors/id/P/PE/PETDANCE/Test-Harness-2.62.tar.gz
 t/CPAN/indices/find-ls.gz
 t/CPAN/indices/README
 t/CPAN/modules/02packages.details.txt.gz
