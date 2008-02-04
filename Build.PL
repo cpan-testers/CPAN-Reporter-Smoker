@@ -16,6 +16,7 @@ $class->new(
         'CPAN::HandleConfig' => 0, 
         'CPAN::Reporter::History' => 1.08,
         'CPAN::Tarzip' => 0, 
+        'Compress::Zlib' => 1.20,
         'File::Basename' => 0,
         'File::Spec' => 3.27, 
         'File::Temp' => 0.20, 

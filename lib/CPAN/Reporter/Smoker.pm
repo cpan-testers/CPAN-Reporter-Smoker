@@ -2,7 +2,7 @@ package CPAN::Reporter::Smoker;
 use 5.006;
 use strict;
 use warnings;
-our $VERSION = '0.03'; 
+our $VERSION = '0.04'; 
 $VERSION = eval $VERSION; ## no critic
 
 use Config;
@@ -10,6 +10,7 @@ use CPAN;
 use CPAN::Tarzip;
 use CPAN::HandleConfig;
 use CPAN::Reporter::History;
+use Compress::Zlib;
 use File::Temp 0.20;
 use File::Spec;
 use File::Basename qw/basename/;
@@ -81,6 +82,21 @@ sub start {
 #--------------------------------------------------------------------------#
 # private variables and functions
 #--------------------------------------------------------------------------#
+
+sub _prompt_quit {
+    my ($sig) = @_;
+    # convert numeric to name
+    if ( $sig =~ /\d+/ ) {
+        my @signals = split q{ }, $Config{sig_name};
+        $sig = $signals[$sig] || '???';
+    }
+    $CPAN::Frontend->myprint(
+        "\nCPAN testing halted on SIG$sig.  Continue (y/n)? [n]\n"
+    );
+    my $answer = <>;
+    exit 0 unless substr( lc($answer), 0, 1) eq 'y';
+    return;
+}
 
 #--------------------------------------------------------------------------#
 # _get_module_index
