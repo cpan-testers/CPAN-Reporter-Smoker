@@ -20,6 +20,7 @@ WriteMakefile
                            'File::Path' => 0,
                            'CPAN' => '1.92',
                            'Module::Build' => '0.2808',
+                           'File::Basename' => 0,
                            'CPAN::HandleConfig' => 0,
                            'Cwd' => 0
                          }

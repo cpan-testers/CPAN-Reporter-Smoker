@@ -1,5 +1,12 @@
 Revision history for Perl module CPAN::Reporter::Smoker
 
+0.03 Mon Feb  4 11:23:43 EST 2008
+
+    - Vastly improved logic for selecting distributions to test
+
+    - Test suite confirms smoke tester picks up a developer version
+      (still could be improved)
+    
 0.02 Mon Jan 28 11:55:35 EST 2008
 
     - Added rudimentary test of smoke testing

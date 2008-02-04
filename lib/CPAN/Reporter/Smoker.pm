@@ -2,7 +2,7 @@ package CPAN::Reporter::Smoker;
 use 5.006;
 use strict;
 use warnings;
-our $VERSION = '0.02'; 
+our $VERSION = '0.03'; 
 $VERSION = eval $VERSION; ## no critic
 
 use Config;
@@ -12,6 +12,7 @@ use CPAN::HandleConfig;
 use CPAN::Reporter::History;
 use File::Temp 0.20;
 use File::Spec;
+use File::Basename qw/basename/;
 use Probe::Perl;
 
 use Exporter;
@@ -23,10 +24,11 @@ our @EXPORT = qw/ start /; ## no critic Export
 #--------------------------------------------------------------------------#
 
 my $perl = Probe::Perl->find_perl_interpreter;
-my $index_file = 'indices/find-ls.gz';
-my $tmp_dir = File::Temp->newdir( 'CPAN-Reporter-Smoker-XXXXXXX', 
-    DIR => File::Spec->tmpdir,
-);
+#my $tmp_dir = File::Temp->newdir( 'CPAN-Reporter-Smoker-XXXXXXX', 
+#    DIR => File::Spec->tmpdir,
+#    UNLINK => 0,
+#);
+my $tmp_dir = File::Temp::tempdir;
 
 #--------------------------------------------------------------------------#
 # start -- start automated smoking
@@ -47,13 +49,11 @@ sub start {
     CPAN::Index->reload;
 
     # Get the list of distributions to process
-    $CPAN::Frontend->mywarn( 
-        "Smoker: getting index from CPAN\n");
-    my $index = _get_module_index( $index_file )
-        or die "Couldn't get '$index_file' from your CPAN mirror. Halting\n";
-    $CPAN::Frontend->mywarn( 
-        "Smoker: scanning and sorting index\n");
-    my $dists = _parse_module_index( $index );
+    my $package = _get_module_index( 'modules/02packages.details.txt.gz' );
+    my $find_ls = _get_module_index( 'indices/find-ls.gz' );
+
+    $CPAN::Frontend->mywarn( "Smoker: scanning and sorting index\n");
+    my $dists = _parse_module_index( $package, $find_ls );
     
     # Win32 SIGINT propogates all the way to us, so trap it before we smoke
     local $SIG{INT} = \&_prompt_quit;
@@ -82,6 +82,26 @@ sub start {
 # private variables and functions
 #--------------------------------------------------------------------------#
 
+#--------------------------------------------------------------------------#
+# _get_module_index
+#
+# download the 01modules index and return the local file name
+#--------------------------------------------------------------------------#
+
+sub _get_module_index {
+    my ($remote_file) = @_;
+
+    $CPAN::Frontend->mywarn( 
+        "Smoker: getting $remote_file from CPAN\n");
+    # CPAN.pm may not use aslocal if it's a file:// mirror
+    my $aslocal_file = File::Spec->catfile( $tmp_dir, basename( $remote_file ));
+    my $actual_local = CPAN::FTP->localize( $remote_file, $aslocal_file );
+    if ( ! -r $actual_local ) {
+        die "Couldn't get '$remote_file' from your CPAN mirror. Halting\n";
+    }
+    return $actual_local;
+}
+
 my $module_index_re = qr{
     ^\s href="\.\./authors/id/./../    # skip prelude 
     ([^"]+)                     # capture to next dquote mark
@@ -103,34 +123,49 @@ my %months = (
 );
 
 # standard regexes
+# note on archive suffixes -- .pm.gz shows up in 02packagesf
 my %re = (
-    perls => qr{[^/]+/(?:perl|parrot|kurila|ponie)-?\d},
-    archive => qr{\.(?:tar\.(?:bz2|gz|Z)|t(?:gz|bz)|zip)$}i,
+    perls => qr{(?:
+		  /(?:emb|syb|bio)?perl-\d 
+		| /(?:parrot|ponie|kurila|Perl6-Pugs)-\d 
+		| /perl-?5\.004 
+		| /perl_mlb\.zip 
+    )}xi,
+    archive => qr{\.(?:tar\.(?:bz2|gz|Z)|t(?:gz|bz)|zip|pm.gz)$}i,
     target_dir => qr{
         ^(?:
+            modules/by-module/[^/]+/./../ | 
             modules/by-module/[^/]+/ | 
-            modules/by-category/[^/]+/ | 
-            authors/id/./../
+            modules/by-category/[^/]+/[^/]+/./../ | 
+            modules/by-category/[^/]+/[^/]+/ | 
+            authors/id/./../ 
         )
     }x,
+    leading_initials => qr{(.)/\1./},
 );
 
+# match version and suffix
+$re{version_suffix} = qr{([-._]v?[0-9].*)($re{archive})};
+
 # split into "AUTHOR/Name" and "Version"
-$re{split_them} = qr{^(.+)-([^-]+)$re{archive}$};
+$re{split_them} = qr{^(.+?)$re{version_suffix}$};
 
-# matches "AUTHOR/tarbal.suffix" and not "AUTHOR/subdir/whatever"
-$re{get_base_id} = qr{$re{target_dir}([^/]+/[^/]+)$};
+# matches "AUTHOR/tarball.suffix" or AUTHOR/modules/tarball.suffix
+# and not other "AUTHOR/subdir/whatever"
 
-#--------------------------------------------------------------------------#
-# _get_module_index
-#
-# download the 01modules index and return the local file name
-#--------------------------------------------------------------------------#
+# Just get AUTHOR/tarball.suffix from whatever file name is passed in
+sub _get_base_id { 
+    my $file = shift;
+    my $base_id = $file;
+    $base_id =~ s{$re{target_dir}}{};
+    return $base_id;
+}
 
-sub _get_module_index {
-    my ($remote_file) = @_;
-    my $local_file = File::Spec->catfile( $tmp_dir, $remote_file );
-    return CPAN::FTP->localize( $remote_file, $local_file ); 
+sub _base_name {
+    my ($base_id) = @_;
+    my $base_file = basename $base_id;
+    my ($base_name, $base_version) = $base_file =~ $re{split_them};
+    return $base_name;
 }
 
 #--------------------------------------------------------------------------#
@@ -140,19 +175,53 @@ sub _get_module_index {
 #--------------------------------------------------------------------------#-
 
 sub _parse_module_index {
-    my ($filename) = @_;
+    my ( $packages, $file_ls ) = @_;
 
+	# first walk the packages list
+    # and build an index
+
+    my (%valid_bases, %valid_distros, %mirror);
+    my (%latest, %latest_dev);
+
+    my $gz = Compress::Zlib::gzopen($packages, "rb")
+        or die "Cannot open package list: $Compress::Zlib::gzerrno";
+
+    my $inheader = 1;
+    while ($gz->gzreadline($_) > 0) {
+        if ($inheader) {
+            $inheader = 0 unless /\S/;
+            next;
+        }
+
+        my ($module, $version, $path) = split;
+        
+        my $base_id = _get_base_id("authors/id/$path");
+
+        # skip all perl-like distros
+        next if $base_id =~ $re{perls};
+
+        $valid_distros{$base_id}++;
+        my $base_name = _base_name( $base_id );
+        if ($base_name) {
+            $latest{$base_name} = {
+                datetime => 0,
+                base_id => $base_id
+            };
+        }
+    }
+
+    # next walk the find-ls file
     local *FH;
-    tie *FH, 'CPAN::Tarzip', $filename;
-
-    my %latest;
-    my %latest_dev;
+    tie *FH, 'CPAN::Tarzip', $file_ls;
 
     while ( defined ( my $line = <FH> ) ) {
         my %stat;
         @stat{qw/inode blocks perms links owner group size datetime name linkname/}
             = split q{ }, $line;
         
+        unless ($stat{name} && $stat{perms} && $stat{datetime}) {
+            next;
+        }
         # skip directories, symlinks and things that aren't a tarball
         next if $stat{perms} eq "l" || substr($stat{perms},0,1) eq "d";
         next unless $stat{name} =~ $re{target_dir};
@@ -160,49 +229,64 @@ sub _parse_module_index {
 
         # skip if not AUTHOR/tarball 
         # skip perls
-        my ($base_id) = $stat{name} =~ $re{get_base_id};
+        my $base_id = _get_base_id($stat{name});
         next unless $base_id; 
+        
         next if $base_id =~ $re{perls};
 
-        # split into "AUTHOR/Name" and "Version"
-        # skip if doesn't dist doesn't have a proper version number
-        my ($base_dist, $base_version) = $base_id =~ $re{split_them};
-        next unless defined $base_dist && defined $base_version; 
+        my $base_name = _base_name( $base_id );
 
-        # record developer and regular releases separately
-        my $tracker = ( $base_version =~ m{_} ) ? \%latest_dev : \%latest;
+        # if $base_id matches 02packages, then it is the latest version
+        # and we definitely want it; also update datetime from the initial
+        # assumption of 0
+        if ( $valid_distros{$base_id} ) {
+            $mirror{$base_id} = $stat{datetime};
+            next unless $base_name;
+            if ( $stat{datetime} > $latest{$base_name}{datetime} ) {
+                $latest{$base_name} = { 
+                    datetime => $stat{datetime}, 
+                    base_id => $base_id
+                };
+            }
+        }
+        # if not in the packages file, we only want it if it resembles 
+        # something in the package file and we only the most recent one
+        else {
+            # skip if couldn't parse out the name without version number
+            next unless defined $base_name;
 
-        $tracker->{$base_dist} ||= { datetime => 0 };
-        if ( $stat{datetime} > $tracker->{$base_dist}{datetime} ) {
-            $tracker->{$base_dist} = { 
-                datetime => $stat{datetime}, 
-                base_id => $base_id
-            };
+            # skip unless there's a matching base from the packages file
+            next unless $latest{$base_name};
+
+            # keep only the latest
+            $latest_dev{$base_name} ||= { datetime => 0 };
+            if ( $stat{datetime} > $latest_dev{$base_name}{datetime} ) {
+                $latest_dev{$base_name} = { 
+                    datetime => $stat{datetime}, 
+                    base_id => $base_id
+                };
+            }
         }
     }
 
-    # assemble into one set
-    my %dists;
-    for my $tracker ( \%latest, \%latest_dev ) {
-        $dists{ $tracker->{$_}{base_id} } = $tracker->{$_}{datetime} 
-            for keys %$tracker;
+    # pick up anything from packages that wasn't found find-ls
+    for my $name ( keys %latest ) {
+        my $base_id = $latest{$name}{base_id};
+        $mirror{$base_id} = $latest{$name}{datetime} unless $mirror{$base_id};
     }
-    return [ sort { $dists{$b} <=> $dists{$a} } keys %dists ];
-}
+          
+    # for dev versions, it must be newer than the latest version of
+    # the same base name from the packages file
 
-sub _prompt_quit {
-    my ($sig) = @_;
-    # convert numeric to name
-    if ( $sig =~ /\d+/ ) {
-        my @signals = split q{ }, $Config{sig_name};
-        $sig = $signals[$sig] || '???';
+    for my $name ( keys %latest_dev ) {
+        if ( ! $latest{$name} ) {
+            next;
+        }
+        next if $latest{$name}{datetime} > $latest_dev{$name}{datetime};
+        $mirror{ $latest_dev{$name}{base_id} } = $latest_dev{$name}{datetime} 
     }
-    $CPAN::Frontend->myprint(
-        "\nCPAN testing halted on SIG$sig.  Continue (y/n)? [n]\n"
-    );
-    my $answer = <>;
-    exit 0 unless substr( lc($answer), 0, 1) eq 'y';
-    return;
+
+    return [ sort { $mirror{$b} <=> $mirror{$a} } keys %mirror ];
 }
 
 1; #modules must return true
@@ -265,17 +349,34 @@ take these risks.
 
 == Selection of distributions to test
 
-Note that only the most recently uploaded developer and normal releases will be
-tested.  In otherwords, if Foo-Bar-0.01, Foo-Bar-0.02, Foo-Bar-0.03_01 and
-Foo-Bar-0.03_02 are on CPAN, only Foo-Bar-0.02 and Foo-Bar 0.03_02 will be
-tested, and in reverse order of when they were uploaded.
+Only the most recently uploaded developer and normal releases will be
+tested, and only if the developer release is newer than the regular release
+indexed by PAUSE.  
 
-Perl, parrot or kurila distributions will not be tested.  
+For example, if Foo-Bar-0.01, Foo-Bar-0.02, Foo-Bar-0.03_01 and Foo-Bar-0.03_02
+are on CPAN, only Foo-Bar-0.02 and Foo-Bar-0.03_02 will be tested, and in
+reverse order of when they were uploaded.  Once Foo-Bar-0.04 is released and
+indexed, Foo-Bar-0.03_02 will not longer be tested.
 
-Also, anything that doesn't appear to be a "normal" distribution will not be
-tested.  To be in the queue for smoke testing, distributions must be in an
-author's base CPAN directory with an archive suffix and a sensible version
-number.
+To avoid testing script or other tarballs, developer distributions included
+must have a base distribution name that resembles a distribution tarball
+already indexed by PAUSE.  If the first upload of distribution to PAUSE is a
+developer release -- Baz-Bam-0.00_01.tar.gz -- it will not be tested as there
+is no indexed Baz-Bam appearing in CPAN's 02packages.details.txt file.  
+
+Unauthorized tarballs are treated like developer releases and will be tested
+if they resemble an indexed distribution and are newer than the indexed
+tarball.
+
+Perl, parrot, kurila, Pugs and similar distributions will not be tested.  The
+skip list is based on CPAN::Mini and matches as follows:
+    
+    qr{(?:
+		  /(?:emb|syb|bio)?perl-\d 
+		| /(?:parrot|ponie|kurila|Perl6-Pugs)-\d 
+		| /perl-?5\.004 
+		| /perl_mlb\.zip 
+    )}xi,
 
 == CPAN::Mini
 

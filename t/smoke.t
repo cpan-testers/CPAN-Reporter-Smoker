@@ -46,8 +46,9 @@ can_ok( 'CPAN::Reporter::Smoker', 'start' );
 
 pass ("Starting simulated smoke testing");
 capture sub { CPAN::Reporter::Smoker::start() } => \($stdout, $stderr);
+#CPAN::Reporter::Smoker::start();
 
 require_ok( 'CPAN::Reporter::History' );
 my @results = CPAN::Reporter::History::have_tested();
-is( scalar @results, 4, "Number of reports in history" );
+is( scalar @results, 6, "Number of reports in history" );
 

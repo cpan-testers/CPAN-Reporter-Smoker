@@ -16,6 +16,7 @@ $class->new(
         'CPAN::HandleConfig' => 0, 
         'CPAN::Reporter::History' => 1.08,
         'CPAN::Tarzip' => 0, 
+        'File::Basename' => 0,
         'File::Spec' => 3.27, 
         'File::Temp' => 0.20, 
         'Probe::Perl' => 0.01,
@@ -40,4 +41,3 @@ $class->new(
         },
     },
 )->create_build_script;
-

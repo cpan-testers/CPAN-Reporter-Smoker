@@ -2,7 +2,7 @@ NAME
     CPAN::Reporter::Smoker - Turnkey CPAN Testers smoking
 
 VERSION
-    This documentation describes version 0.02.
+    This documentation describes version 0.03.
 
 SYNOPSIS
          $ perl -MCPAN::Reporter::Smoker -e start
@@ -48,18 +48,36 @@ DESCRIPTION
 
 HINTS
   Selection of distributions to test
-    Note that only the most recently uploaded developer and normal releases
-    will be tested. In otherwords, if Foo-Bar-0.01, Foo-Bar-0.02,
-    Foo-Bar-0.03_01 and Foo-Bar-0.03_02 are on CPAN, only Foo-Bar-0.02 and
-    Foo-Bar 0.03_02 will be tested, and in reverse order of when they were
-    uploaded.
+    Only the most recently uploaded developer and normal releases will be
+    tested, and only if the developer release is newer than the regular
+    release indexed by PAUSE.
 
-    Perl, parrot or kurila distributions will not be tested.
+    For example, if Foo-Bar-0.01, Foo-Bar-0.02, Foo-Bar-0.03_01 and
+    Foo-Bar-0.03_02 are on CPAN, only Foo-Bar-0.02 and Foo-Bar-0.03_02 will
+    be tested, and in reverse order of when they were uploaded. Once
+    Foo-Bar-0.04 is released and indexed, Foo-Bar-0.03_02 will not longer be
+    tested.
 
-    Also, anything that doesn't appear to be a "normal" distribution will
-    not be tested. To be in the queue for smoke testing, distributions must
-    be in an author's base CPAN directory with an archive suffix and a
-    sensible version number.
+    To avoid testing script or other tarballs, developer distributions
+    included must have a base distribution name that resembles a
+    distribution tarball already indexed by PAUSE. If the first upload of
+    distribution to PAUSE is a developer release -- Baz-Bam-0.00_01.tar.gz
+    -- it will not be tested as there is no indexed Baz-Bam appearing in
+    CPAN's 02packages.details.txt file.
+
+    Unauthorized tarballs are treated like developer releases and will be
+    tested if they resemble an indexed distribution and are newer than the
+    indexed tarball.
+
+    Perl, parrot, kurila, Pugs and similar distributions will not be tested.
+    The skip list is based on CPAN::Mini and matches as follows:
+
+         qr{(?:
+                      /(?:emb|syb|bio)?perl-\d 
+                    | /(?:parrot|ponie|kurila|Perl6-Pugs)-\d 
+                    | /perl-?5\.004 
+                    | /perl_mlb\.zip 
+         )}xi,
 
   CPAN::Mini
     Because distributions must be retrieved from a CPAN mirror, the smoker
