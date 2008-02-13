@@ -1,5 +1,9 @@
 Revision history for Perl module CPAN::Reporter::Smoker
 
+0.05
+
+   - skips Bundles 
+
 0.04 Mon Feb  4 11:51:16 EST 2008
 
     - quick fix of broken distribution (added missing prereq and restored

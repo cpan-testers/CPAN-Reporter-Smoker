@@ -2,7 +2,7 @@ package CPAN::Reporter::Smoker;
 use 5.006;
 use strict;
 use warnings;
-our $VERSION = '0.04'; 
+our $VERSION = '0.05'; 
 $VERSION = eval $VERSION; ## no critic
 
 use Config;
@@ -141,6 +141,7 @@ my %months = (
 # standard regexes
 # note on archive suffixes -- .pm.gz shows up in 02packagesf
 my %re = (
+    bundle => qr{^Bundle::},
     perls => qr{(?:
 		  /(?:emb|syb|bio)?perl-\d 
 		| /(?:parrot|ponie|kurila|Perl6-Pugs)-\d 
@@ -215,6 +216,9 @@ sub _parse_module_index {
 
         # skip all perl-like distros
         next if $base_id =~ $re{perls};
+
+        # skip all bundles
+        next if $module =~ $re{bundle};
 
         $valid_distros{$base_id}++;
         my $base_name = _base_name( $base_id );
