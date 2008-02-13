@@ -29,6 +29,13 @@ TODO list for Perl module CPAN::Reporter::Smoker
       would need changes to CPAN::Reporter history logging to separately
       log DISCARD with the missing dependencies
 
+- dependencies
+    - look at Module::Depends::Intrusive and CPAN::Unwind
+
+- eventually, test and mention 'halt_on_failure' config option to shortcut
+  when a dependency fails (though this misses where dependency upgrade fails
+  and yet module succeeds)
+
 - statistics -- show counter of tests for each test run; show total tests 
   run at the end
 
