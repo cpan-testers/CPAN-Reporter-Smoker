@@ -13,8 +13,6 @@ TODO list for Perl module CPAN::Reporter::Smoker
 - break out of test loop and recheck for updates after some period of delay
     - allow stopping loop if all modules tested -- needed for testing
 
-- check what happens to Bundles
-
 # Medium priority
 
 - create old alpha modules for minicpan and confirm they *aren't* tested
