@@ -420,9 +420,17 @@ home directory to include it in your local CPAN mirror.
 Note that CPAN::Mini does not mirror developer versions.  Therefore, a
 live, network CPAN Mirror will be needed in the urllist to retrieve these.
 
+== Timing out hanging tests
+
+CPAN::Reporter (since 1.08) supports a 'command_timeout' configuration option.
+Set this option in the CPAN::Reporter configuration file to time out tests that
+hang up or get stuck at a prompt.  Set it to a high-value to avoid timing out a
+lengthy tests that are still running  -- 1000 or more seconds is probably
+enough.
+
 == Skip files
 
-CPAN::Reporter (since 1.07_01) supports skipfiles to prevent copying authors
+CPAN::Reporter (since 1.08) supports skipfiles to prevent copying authors
 on reports or from sending reports at all for certain distributions or authors'
 modules.  Use these to stop sending reports if someone complains.  See
 [CPAN::Reporter::Config] for more details.
@@ -450,6 +458,12 @@ minimize some of the clutter to the screen as distributions are tested.
     $ cpan
     cpan> o conf init /verbosity/
     cpan> o conf commit
+
+== Test::Reporter timeouts and MAILDOMAIN
+
+On some systems (e.g. Win32), Test::Reporter takes a long time to determine the
+origin domain for mail.  Set the MAILDOMAIN environment variable instead to
+avoid this delay.
 
 = USAGE
 
