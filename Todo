@@ -4,7 +4,7 @@ TODO list for Perl module CPAN::Reporter::Smoker
 # Bugs
 #--------------------------------------------------------------------------#
 
-- skip mod-perl
+- should skip mod-perl
 
 #--------------------------------------------------------------------------#
 # Features
@@ -28,6 +28,8 @@ TODO list for Perl module CPAN::Reporter::Smoker
     - or after failing deps are updated -- but how to discover what these are?
       would need changes to CPAN::Reporter history logging to separately
       log DISCARD with the missing dependencies
+
+- on CTRL-C, if CPAN has distroprefs, offer to auto-disable the current distro
 
 - dependencies
     - look at Module::Depends::Intrusive and CPAN::Unwind
