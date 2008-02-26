@@ -71,7 +71,7 @@ sub start {
         }
         else {
             $CPAN::Frontend->mywarn( "Smoker: testing $base\n\n" );
-            system($perl, "-MCPAN", "-e", "report( '$d' )");
+            system($perl, "-MCPAN", "-e", "local \$CPAN::Config->{test_report} = 1; test( '$d' )");
             _prompt_quit( $? & 127 ) if ( $? & 127 );
         }
     }

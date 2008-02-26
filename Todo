@@ -4,11 +4,17 @@ TODO list for Perl module CPAN::Reporter::Smoker
 # Bugs
 #--------------------------------------------------------------------------#
 
+- skip mod-perl
+
 #--------------------------------------------------------------------------#
 # Features
 #--------------------------------------------------------------------------#
 
 # High priority
+
+- use CPAN::Reporter's send_skipfile before even trying to test 
+   - or use own custom one?
+   - or use distroprefs?  skip even things in dependencies?
 
 - break out of test loop and recheck for updates after some period of delay
     - allow stopping loop if all modules tested -- needed for testing
@@ -17,10 +23,6 @@ TODO list for Perl module CPAN::Reporter::Smoker
 
 - create old alpha modules for minicpan and confirm they *aren't* tested
     - edit file-ls.gz
-
-- use CPAN::Reporter's send_skipfile before even trying to test 
-   - or use own custom one?
-   - or use distroprefs?  skip even things in dependencies?
 
 - retest discards after some period of time
     - or after failing deps are updated -- but how to discover what these are?
