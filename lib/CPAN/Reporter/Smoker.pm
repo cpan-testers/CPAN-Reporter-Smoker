@@ -41,7 +41,7 @@ my %spec = (
         is_valid => sub { /\d+/ },
     },
 );
-
+ 
 sub start {
     my %args = map { $_ => $spec{$_}{default} } keys %spec;
     croak "Invalid arguments to start(): must be key/value pairs"
@@ -52,6 +52,13 @@ sub start {
         croak "Invalid argument to start(): $key => $value"
             unless $spec{$key} && $spec{$key}{is_valid}->($value);
         $args{$key} = $value;
+    }
+
+    # bail out if we're just testing
+    if (defined $ENV{PERL_CR_SMOKER_MAX_LOOPS} && 
+        $ENV{PERL_CR_SMOKER_MAX_LOOPS} == 0 
+    ) { 
+        return 1;
     }
 
     # Let things know we're running automated
@@ -68,15 +75,6 @@ sub start {
         CPAN::Index->reload;
     }
 
-    # Set up max loop counter for testing -- this is how many times we will
-    # attempt to test *all* dists
-    # 
-    # 0 is useful for testing arg handling
-    # defaults to 1 if undef
-
-    my $max_loops = $ENV{PERL_CR_SMOKER_MAX_LOOPS};
-    $max_loops = 1 unless defined $max_loops;
-
     # XXX loop counter will increment with each restart -- this is ugly but
     # useful for testing
     my $loop_counter = 0;
@@ -85,7 +83,7 @@ sub start {
     $CPAN::Frontend->mywarn( "Starting CPAN::Reporter::Smoker\n" );
 
     SCAN_LOOP:
-    while ($loop_counter < $max_loops) {
+    while ( 1 ) {
         $loop_counter++;
         my $loop_start_time = time;
 
@@ -114,9 +112,15 @@ sub start {
                 system($perl, "-MCPAN", "-e", "local \$CPAN::Config->{test_report} = 1; test( '$d' )");
                 _prompt_quit( $? & 127 ) if ( $? & 127 );
             }
-            redo SCAN_LOOP if time - $loop_start_time > $args{restart_delay};
+            next SCAN_LOOP if time - $loop_start_time > $args{restart_delay};
+        }
+
+        # If we're testing, we may want to break
+        if ( $ENV{PERL_CR_SMOKER_TESTING} ) {
+            last SCAN_LOOP if $loop_counter >= $ENV{PERL_CR_SMOKER_MAX_LOOPS}
         }
     }
+
     return $loop_counter;
 }
 

@@ -46,6 +46,9 @@ can_ok( 'CPAN::Reporter::Smoker', 'start' );
 
 pass ("Starting simulated smoke testing");
 
+local $ENV{PERL_CR_SMOKER_TESTING} = 1;
+local $ENV{PERL_CR_SMOKER_MAX_LOOPS} = 1;
+
 if ( $ENV{PERL_AUTHOR_TESTING} ) {
     CPAN::Reporter::Smoker::start();
 }
