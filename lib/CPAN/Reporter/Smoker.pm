@@ -5,6 +5,7 @@ use warnings;
 our $VERSION = '0.05'; 
 $VERSION = eval $VERSION; ## no critic
 
+use Carp;
 use Config;
 use CPAN; 
 use CPAN::Tarzip;
@@ -34,9 +35,24 @@ my $tmp_dir = File::Temp::tempdir;
 #--------------------------------------------------------------------------#
 # start -- start automated smoking
 #--------------------------------------------------------------------------#
+my %spec = (
+    restart_delay => { 
+        default => 12 * 3600, # 12 hours
+        is_valid => sub { /\d+/ },
+    },
+);
 
 sub start {
-    print "Starting CPAN::Reporter::Smoker\n";
+    my %args = map { $_ => $spec{$_}{default} } keys %spec;
+    croak "Invalid arguments to start(): must be key/value pairs"
+        if @_ % 2;
+    while ( @_ ) {
+        my ($key, $value) = splice @_, 0, 2;
+        local $_ = $value; # alias for validator
+        croak "Invalid argument to start(): $key => $value"
+            unless $spec{$key} && $spec{$key}{is_valid}->($value);
+        $args{$key} = $value;
+    }
 
     # Let things know we're running automated
     local $ENV{AUTOMATED_TESTING} = 1;
@@ -45,38 +61,63 @@ sub start {
     local $ENV{PERL_MM_USE_DEFAULT} = 1;
 
     # Load CPAN configuration
-    CPAN::HandleConfig->load();
-    CPAN::Shell::setup_output;
-    CPAN::Index->reload;
-
-    # Get the list of distributions to process
-    my $package = _get_module_index( 'modules/02packages.details.txt.gz' );
-    my $find_ls = _get_module_index( 'indices/find-ls.gz' );
-
-    $CPAN::Frontend->mywarn( "Smoker: scanning and sorting index\n");
-    my $dists = _parse_module_index( $package, $find_ls );
-    
-    # Win32 SIGINT propogates all the way to us, so trap it before we smoke
-    local $SIG{INT} = \&_prompt_quit;
-
-    # Start smoking
-    DIST:
-    for my $d ( @$dists ) {
-        my $dist = CPAN::Shell->expandany($d);
-        my $base = $dist->base_id;
-        if ( CPAN::Reporter::History::have_tested( dist => $base ) ) {
-            $CPAN::Frontend->mywarn( 
-                "Smoker: already tested $base\n");
-            next DIST;
-        }
-        else {
-            $CPAN::Frontend->mywarn( "Smoker: testing $base\n\n" );
-            system($perl, "-MCPAN", "-e", "local \$CPAN::Config->{test_report} = 1; test( '$d' )");
-            _prompt_quit( $? & 127 ) if ( $? & 127 );
-        }
+    my $init_cpan = 0;
+    unless ( $init_cpan++ ) {
+        CPAN::HandleConfig->load();
+        CPAN::Shell::setup_output;
+        CPAN::Index->reload;
     }
 
-    return;
+    # Set up max loop counter for testing -- this is how many times we will
+    # attempt to test *all* dists
+    # 
+    # 0 is useful for testing arg handling
+    # defaults to 1 if undef
+
+    my $max_loops = $ENV{PERL_CR_SMOKER_MAX_LOOPS};
+    $max_loops = 1 unless defined $max_loops;
+
+    # XXX loop counter will increment with each restart -- this is ugly but
+    # useful for testing
+    my $loop_counter = 0;
+
+    # Master loop
+    $CPAN::Frontend->mywarn( "Starting CPAN::Reporter::Smoker\n" );
+
+    SCAN_LOOP:
+    while ($loop_counter < $max_loops) {
+        $loop_counter++;
+        my $loop_start_time = time;
+
+        # Get the list of distributions to process
+        my $package = _get_module_index( 'modules/02packages.details.txt.gz' );
+        my $find_ls = _get_module_index( 'indices/find-ls.gz' );
+        $CPAN::Frontend->mywarn( "Smoker: scanning and sorting index\n");
+
+        my $dists = _parse_module_index( $package, $find_ls );
+        
+        # Win32 SIGINT propogates all the way to us, so trap it before we smoke
+        local $SIG{INT} = \&_prompt_quit;
+
+        # Start smoking
+        DIST:
+        for my $d ( @$dists ) {
+            my $dist = CPAN::Shell->expandany($d);
+            my $base = $dist->base_id;
+            if ( CPAN::Reporter::History::have_tested( dist => $base ) ) {
+                $CPAN::Frontend->mywarn( 
+                    "Smoker: already tested $base\n");
+                next DIST;
+            }
+            else {
+                $CPAN::Frontend->mywarn( "Smoker: testing $base\n\n" );
+                system($perl, "-MCPAN", "-e", "local \$CPAN::Config->{test_report} = 1; test( '$d' )");
+                _prompt_quit( $? & 127 ) if ( $? & 127 );
+            }
+            redo SCAN_LOOP if time - $loop_start_time > $args{restart_delay};
+        }
+    }
+    return $loop_counter;
 }
 
 #--------------------------------------------------------------------------#
@@ -142,6 +183,7 @@ my %months = (
 # note on archive suffixes -- .pm.gz shows up in 02packagesf
 my %re = (
     bundle => qr{^Bundle::},
+    mod_perl => qr{/mod_perl},
     perls => qr{(?:
 		  /(?:emb|syb|bio)?perl-\d 
 		| /(?:parrot|ponie|kurila|Perl6-Pugs)-\d 
@@ -217,6 +259,9 @@ sub _parse_module_index {
         # skip all perl-like distros
         next if $base_id =~ $re{perls};
 
+        # skip mod_perl environment
+        next if $base_id =~ $re{mod_perl};
+        
         # skip all bundles
         next if $module =~ $re{bundle};
 

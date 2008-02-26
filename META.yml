@@ -1,6 +1,6 @@
 ---
 name: CPAN-Reporter-Smoker
-version: 0.04
+version: 0.05
 author:
   - 'David A. Golden <dagolden@cpan.org>'
 abstract: Turnkey CPAN Testers smoking
@@ -11,7 +11,7 @@ resources:
 requires:
   CPAN: 1.92
   CPAN::HandleConfig: 0
-  CPAN::Reporter::History: 1.08
+  CPAN::Reporter::History: 1.11
   CPAN::Tarzip: 0
   Compress::Zlib: 1.2
   File::Basename: 0
@@ -29,7 +29,7 @@ build_requires:
 provides:
   CPAN::Reporter::Smoker:
     file: lib/CPAN/Reporter/Smoker.pm
-    version: 0.04
+    version: 0.05
 generated_by: Module::Build version 0.280801
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html

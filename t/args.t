@@ -5,10 +5,32 @@ use Test::More;
 
 use Config;
 use File::Spec;
-use IO::CaptureOutput qw/capture/;
 use t::DotDirs;
+use IO::CaptureOutput qw/capture/;
 
-plan tests =>  5 ;
+my @good_args = (
+    {
+        label => "no args",
+        args => [],
+    },
+    {
+        label => "restart_delay",
+        args => [ restart_delay => 30],
+    },
+);
+
+my @bad_args = (
+    {
+        label => "args not % 2",
+        args => [ 30 ],
+    },
+    {
+        label => "restart_delay with alpha",
+        args => [ restart_delay => 'abc'],
+    },
+);
+
+plan tests =>  1 + 2 * ( @good_args + @bad_args );
 
 #--------------------------------------------------------------------------#
 # Setup test environment
@@ -40,20 +62,23 @@ my ($stdout, $stderr);
 # tests begin here
 #--------------------------------------------------------------------------#
 
-require_ok( 'CPAN::Reporter::Smoker' );
+use_ok( 'CPAN::Reporter::Smoker' );
 
-can_ok( 'CPAN::Reporter::Smoker', 'start' );
+local $ENV{PERL_CR_SMOKER_MAX_LOOPS} = 0; # don't run at all, just check args
 
-pass ("Starting simulated smoke testing");
-
-if ( $ENV{PERL_AUTHOR_TESTING} ) {
-    CPAN::Reporter::Smoker::start();
+for my $c ( @good_args ) {
+    my $rc = eval { capture { start( @{$c->{args}} ) } \$stdout, \$stderr };
+    my $err = $@;
+    is( $rc, 1, "$c->{label}: start() successful" );
+    unlike( $err, qr/Invalid arguments? to start/, 
+        "$c->{label}: no error message");
 }
-else {
-    capture \&CPAN::Reporter::Smoker::start, \$stdout, \$stderr;
-}
 
-require_ok( 'CPAN::Reporter::History' );
-my @results = CPAN::Reporter::History::have_tested();
-is( scalar @results, 6, "Number of reports in history" );
+for my $c ( @bad_args ) {
+    my $rc = eval { capture { start( @{$c->{args}} ) } \$stdout, \$stderr };
+    my $err = $@;
+    ok( ! $rc, "$c->{label}: start() failed" );
+    like( $err, qr/Invalid arguments? to start/, 
+        "$c->{label}: saw error message");
+}
 

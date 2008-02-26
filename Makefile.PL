@@ -12,7 +12,7 @@ WriteMakefile
                            'Compress::Zlib' => '1.2',
                            'IO::CaptureOutput' => '1.03',
                            'File::Spec' => '3.27',
-                           'CPAN::Reporter::History' => '1.08',
+                           'CPAN::Reporter::History' => '1.11',
                            'Probe::Perl' => '0.01',
                            'File::Path' => 0,
                            'Module::Build' => '0.2808',

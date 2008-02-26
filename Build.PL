@@ -14,7 +14,7 @@ $class->new(
         perl => 5.006,
         'CPAN' => 1.92, 
         'CPAN::HandleConfig' => 0, 
-        'CPAN::Reporter::History' => 1.08,
+        'CPAN::Reporter::History' => 1.11,
         'CPAN::Tarzip' => 0, 
         'Compress::Zlib' => 1.20,
         'File::Basename' => 0,

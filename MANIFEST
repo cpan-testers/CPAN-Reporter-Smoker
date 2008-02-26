@@ -11,14 +11,17 @@ MANIFEST.SKIP
 META.yml
 README
 t/00load.t
+t/args.t
 t/CPAN/authors/01mailrc.txt.gz
 t/CPAN/authors/id/A/AN/ANDK/Bogus-OSUnsupported-0.01.tar.gz
 t/CPAN/authors/id/A/AN/ANDK/CHECKSUMS
 t/CPAN/authors/id/D/DA/DAGOLDEN/Bogus-Fail-0.01.tar.gz
 t/CPAN/authors/id/D/DA/DAGOLDEN/Bogus-Pass-0.01.tar.gz
 t/CPAN/authors/id/D/DA/DAGOLDEN/Bogus-PL-Fail-0.01.tar.gz
+t/CPAN/authors/id/D/DA/DAGOLDEN/Bundle-Fake-1.00.tar.gz
 t/CPAN/authors/id/D/DA/DAGOLDEN/CHECKSUMS
 t/CPAN/authors/id/J/JH/JHI/Bogus-Fail-0.01_01.tar.gz
+t/CPAN/authors/id/J/JH/JHI/CHECKSUMS
 t/CPAN/authors/id/P/PE/PETDANCE/CHECKSUMS
 t/CPAN/authors/id/P/PE/PETDANCE/Test-Harness-2.62.tar.gz
 t/CPAN/indices/find-ls.gz
@@ -29,6 +32,8 @@ t/CPAN/update-checksums.pl
 t/DotDirs.pm
 t/lib/CPAN/MyConfig.pm
 t/lib/Test/Reporter.pm
+t/smoke-loops.t
+t/smoke-restart.t
 t/smoke.t
 Todo
 xt/critic.t

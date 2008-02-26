@@ -8,7 +8,7 @@ use File::Spec;
 use IO::CaptureOutput qw/capture/;
 use t::DotDirs;
 
-plan tests =>  5 ;
+plan tests =>  6 ;
 
 #--------------------------------------------------------------------------#
 # Setup test environment
@@ -34,6 +34,8 @@ t::DotDirs->prepare_cpan;
 # Setup CPAN::Reporter configuration
 $ENV{PERL_CPAN_REPORTER_DIR} = t::DotDirs->prepare_cpan_reporter;
 
+my $loops = 2;
+
 my ($stdout, $stderr);
 
 #--------------------------------------------------------------------------#
@@ -46,14 +48,18 @@ can_ok( 'CPAN::Reporter::Smoker', 'start' );
 
 pass ("Starting simulated smoke testing");
 
+local $ENV{PERL_CR_SMOKER_MAX_LOOPS} = $loops;
+
+my $rc;
 if ( $ENV{PERL_AUTHOR_TESTING} ) {
-    CPAN::Reporter::Smoker::start();
+    $rc = CPAN::Reporter::Smoker::start();
 }
 else {
-    capture \&CPAN::Reporter::Smoker::start, \$stdout, \$stderr;
+    $rc = capture \&CPAN::Reporter::Smoker::start, \$stdout, \$stderr;
 }
 
 require_ok( 'CPAN::Reporter::History' );
 my @results = CPAN::Reporter::History::have_tested();
-is( scalar @results, 6, "Number of reports in history" );
+is( scalar @results, 6 , "Number of reports in history" );
+is( $rc, $loops, "Number of loops" );
 
