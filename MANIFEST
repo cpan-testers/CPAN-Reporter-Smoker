@@ -32,7 +32,6 @@ t/CPAN/update-checksums.pl
 t/DotDirs.pm
 t/lib/CPAN/MyConfig.pm
 t/lib/Test/Reporter.pm
-t/smoke-loops.t
 t/smoke-restart.t
 t/smoke.t
 Todo
