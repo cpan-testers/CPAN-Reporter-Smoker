@@ -1,14 +1,20 @@
 Revision history for Perl module CPAN::Reporter::Smoker
 
-0.05
+0.05 Tue Feb 26 22:56:12 EST 2008
 
-    - changed invocation of CPAN so trust_test_report_history option will work
+    - Smoker now periodically checks for new distributions; added
+      "restart_delay" option (default 12 hours) to control frequency
+    
+    - Added support for CPAN cache scanning on start and at each restart (if
+      configured in CPAN::Config)
+    
+    - Changed invocation of CPAN so trust_test_report_history option will work
 
-    - skips Bundles 
+    - Skips Bundles and mod_perl
 
 0.04 Mon Feb  4 11:51:16 EST 2008
 
-    - quick fix of broken distribution (added missing prereq and restored
+    - Quick fix of broken distribution (added missing prereq and restored
       a private function that was mistakenly deleted)
 
 0.03 Mon Feb  4 11:23:43 EST 2008

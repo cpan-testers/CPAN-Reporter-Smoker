@@ -57,6 +57,9 @@ sub start {
     # Stop here if we're just testing
     return 1 if $ENV{PERL_CR_SMOKER_SHORTCUT};
 
+    # Notify before CPAN messages start
+    $CPAN::Frontend->mywarn( "Starting CPAN::Reporter::Smoker\n" );
+
     # Let things know we're running automated
     local $ENV{AUTOMATED_TESTING} = 1;
 
@@ -69,14 +72,13 @@ sub start {
         CPAN::HandleConfig->load();
         CPAN::Shell::setup_output;
         CPAN::Index->reload;
+        $CPAN::META->checklock(); # needed for cache scanning
     }
 
     # Win32 SIGINT propogates all the way to us, so trap it before we smoke
     local $SIG{INT} = \&_prompt_quit;
 
     # Master loop
-    $CPAN::Frontend->mywarn( "Starting CPAN::Reporter::Smoker\n" );
-
     # loop counter will increment with each restart - useful for testing
     my $loop_counter = 0;
     SCAN_LOOP:
@@ -90,6 +92,14 @@ sub start {
         $CPAN::Frontend->mywarn( "Smoker: scanning and sorting index\n");
 
         my $dists = _parse_module_index( $package, $find_ls );
+
+        # Possibly clean up cache
+        if ( $CPAN::META->{cachemgr} ) {
+            $CPAN::META->{cachemgr}->scan_cache();
+        }
+        else {
+            $CPAN::META->{cachemgr} = CPAN::CacheMgr->new(); # also scans cache
+        }
         
         # Start smoking
         DIST:
@@ -113,6 +123,7 @@ sub start {
         sleep $args{restart_delay} - ( time - $loop_start_time );
     }
 
+    CPAN::cleanup();
     return $loop_counter;
 }
 
@@ -130,8 +141,8 @@ sub _prompt_quit {
     $CPAN::Frontend->myprint(
         "\nCPAN testing halted on SIG$sig.  Continue (y/n)? [n]\n"
     );
-    my $answer = <>;
-    exit 0 unless substr( lc($answer), 0, 1) eq 'y';
+    my $answer = <STDIN>;
+    CPAN::cleanup(), exit 0 unless substr( lc($answer), 0, 1) eq 'y';
     return;
 }
 
@@ -375,7 +386,7 @@ This documentation describes version %%VERSION%%.
 = DESCRIPTION
 
 Rudimentary smoke tester for CPAN Testers, built upon [CPAN::Reporter].  Use
-at your own risk.  It requires CPAN::Reporter 1.08 or higher.
+at your own risk.  It requires a recent version of CPAN::Reporter to run.
 
 Currently, CPAN::Reporter::Smoker requires zero independent configuration;
 instead it uses configuration settings from CPAN.pm and CPAN::Reporter.
@@ -389,17 +400,17 @@ Features (or bugs, depending on your point of view):
 * No configuration needed
 * Tests each distribution as a separate CPAN process -- each distribution
 has prerequisites like build_requires satisfied from scratch
-* Continues until finished or until interrupted with CTRL-C
+* Automatically checks for new distributions every twelve hours or as
+otherwise specified
+* Continues until interrupted with CTRL-C
 
 Current limitations:
 
-* Doesn't check skip files before handing off to CPAN to test
-* Does not check for new distributions to test while running, only when
-starting up
+* Does not check any skip files before handing off to CPAN to test
 * Does not attempt to retest distributions that had reports discarded because 
 of prerequisites that could not be satisfied
 
-== Warning
+== Warning -- smoke testing is risky
 
 Smoke testing downloads and runs programs other people have uploaded to CPAN.
 These programs could do *anything* to your system, including deleting
@@ -439,6 +450,8 @@ skip list is based on CPAN::Mini and matches as follows:
 		| /perl_mlb\.zip 
     )}xi,
 
+Bundles and mod_perl distributions will also not be tested.
+
 == CPAN::Mini
 
 Because distributions must be retrieved from a CPAN mirror, the smoker may
@@ -469,6 +482,9 @@ hang up or get stuck at a prompt.  Set it to a high-value to avoid timing out a
 lengthy tests that are still running  -- 1000 or more seconds is probably
 enough.
 
+Warning -- on Win32, terminating processes via the command_timeout is equivalent to
+SIGKILL and could cause system instability or later deadlocks
+
 == Skip files
 
 CPAN::Reporter (since 1.08) supports skipfiles to prevent copying authors
@@ -478,6 +494,9 @@ modules.  Use these to stop sending reports if someone complains.  See
 
 A future version may utilize these to avoid testing modules in the skiplist
 instead of taking the time to test them and then just not send the report.
+
+You may also wish to use CPAN.pm's "distroprefs" to disable testing of certain
+distributions.  See the documentation for CPAN for more details.
 
 == CPAN cache bloat
 
@@ -514,6 +533,13 @@ Starts smoke testing using defaults already in CPAN::Config and
 CPAN::Reporter's .cpanreporter directory.  Runs until all distributions are
 tested or the process is halted with CTRL-C or otherwise killed.
 
+{start()} takes one optional argument:
+
+* {restart_delay} -- number of seconds that must elapse before restarting 
+smoke testing; this will reload indices to search for new distributions
+and restart testing from the most recent distribution; defaults to 
+43200 seconds (12 hours)
+
 = ENVIRONMENT
 
 Automatically sets the following environment variables to true values 
@@ -522,6 +548,17 @@ while running:
 * {AUTOMATED_TESTING} -- signal that tests are being run by an automated
 smoke testing program (i.e. don't expect interactivity)
 * {PERL_MM_USE_DEFAULT} -- accept [ExtUtils::MakeMaker] prompt() defaults
+
+The following environment variables, if set, will modify the behavior of
+CPAN::Reporter::Smoker.  Generally, they are only required during the
+testing of CPAN::Reporter::Smoker
+
+* {PERL_CR_SMOKER_RUNONCE} -- if true, {start()} will exit after all
+distributions are tested instead of sleeping for the {restart_delay}
+and then continuing
+* {PERL_CR_SMOKER_SHORTCUT} -- if true, {start()} will process arguments (if 
+any) but will return before starting smoke testing; used for testing argument
+handling by {start()}
 
 = BUGS
 

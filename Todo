@@ -14,11 +14,11 @@ TODO list for Perl module CPAN::Reporter::Smoker
 
 - document %ENV variables
 
+# Medium priority
+
 - use CPAN::Reporter's send_skipfile before even trying to test 
    - or use own custom one?
    - or use distroprefs?  skip even things in dependencies?
-
-# Medium priority
 
 - cache scanning won't run without CPAN's checklock
 
