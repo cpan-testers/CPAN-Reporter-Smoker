@@ -10,17 +10,11 @@ TODO list for Perl module CPAN::Reporter::Smoker
 
 # High priority
 
-- document restart_delay argument
-
-- document %ENV variables
-
 # Medium priority
 
 - use CPAN::Reporter's send_skipfile before even trying to test 
    - or use own custom one?
    - or use distroprefs?  skip even things in dependencies?
-
-- cache scanning won't run without CPAN's checklock
 
 - create old alpha modules for minicpan and confirm they *aren't* tested
     - edit file-ls.gz
