@@ -64,7 +64,7 @@ my ($stdout, $stderr);
 
 use_ok( 'CPAN::Reporter::Smoker' );
 
-local $ENV{PERL_CR_SMOKER_MAX_LOOPS} = 0; # don't run at all, just check args
+local $ENV{PERL_CR_SMOKER_SHORTCUT} = 1; # don't run at all, just check args
 
 for my $c ( @good_args ) {
     my $rc = eval { capture { start( @{$c->{args}} ) } \$stdout, \$stderr };

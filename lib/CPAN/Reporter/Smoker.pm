@@ -54,12 +54,8 @@ sub start {
         $args{$key} = $value;
     }
 
-    # bail out if we're just testing
-    if (defined $ENV{PERL_CR_SMOKER_MAX_LOOPS} && 
-        $ENV{PERL_CR_SMOKER_MAX_LOOPS} == 0 
-    ) { 
-        return 1;
-    }
+    # Stop here if we're just testing
+    return 1 if $ENV{PERL_CR_SMOKER_SHORTCUT};
 
     # Let things know we're running automated
     local $ENV{AUTOMATED_TESTING} = 1;
@@ -75,13 +71,14 @@ sub start {
         CPAN::Index->reload;
     }
 
-    # XXX loop counter will increment with each restart -- this is ugly but
-    # useful for testing
-    my $loop_counter = 0;
+    # Win32 SIGINT propogates all the way to us, so trap it before we smoke
+    local $SIG{INT} = \&_prompt_quit;
 
     # Master loop
     $CPAN::Frontend->mywarn( "Starting CPAN::Reporter::Smoker\n" );
 
+    # loop counter will increment with each restart - useful for testing
+    my $loop_counter = 0;
     SCAN_LOOP:
     while ( 1 ) {
         $loop_counter++;
@@ -94,9 +91,6 @@ sub start {
 
         my $dists = _parse_module_index( $package, $find_ls );
         
-        # Win32 SIGINT propogates all the way to us, so trap it before we smoke
-        local $SIG{INT} = \&_prompt_quit;
-
         # Start smoking
         DIST:
         for my $d ( @$dists ) {
@@ -114,11 +108,9 @@ sub start {
             }
             next SCAN_LOOP if time - $loop_start_time > $args{restart_delay};
         }
-
-        # If we're testing, we may want to break
-        if ( $ENV{PERL_CR_SMOKER_TESTING} ) {
-            last SCAN_LOOP if $loop_counter >= $ENV{PERL_CR_SMOKER_MAX_LOOPS}
-        }
+        last SCAN_LOOP if $ENV{PERL_CR_SMOKER_RUNONCE};
+        # if here, we are out of distributions to test, so sleep
+        sleep $args{restart_delay} - ( time - $loop_start_time );
     }
 
     return $loop_counter;
