@@ -12,10 +12,6 @@ TODO list for Perl module CPAN::Reporter::Smoker
 
 # Medium priority
 
-- use CPAN::Reporter's send_skipfile before even trying to test 
-   - or use own custom one?
-   - or use distroprefs?  skip even things in dependencies?
-
 - create old alpha modules for minicpan and confirm they *aren't* tested
     - edit file-ls.gz
 
@@ -35,6 +31,8 @@ TODO list for Perl module CPAN::Reporter::Smoker
 
 - statistics -- show counter of tests for each test run; show total tests 
   run at the end
+
+- docs: suggest that they join cpan-testers-discuss mailing list
 
 # Low/Maybe
 
