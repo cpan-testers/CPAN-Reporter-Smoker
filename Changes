@@ -1,5 +1,8 @@
 Revision history for Perl module CPAN::Reporter::Smoker
 
+0.06
+
+
 0.05 Tue Feb 26 22:56:12 EST 2008
 
     - Smoker now periodically checks for new distributions; added

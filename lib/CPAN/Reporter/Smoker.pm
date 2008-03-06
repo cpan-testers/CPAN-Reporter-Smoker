@@ -2,7 +2,7 @@ package CPAN::Reporter::Smoker;
 use 5.006;
 use strict;
 use warnings;
-our $VERSION = '0.05'; 
+our $VERSION = '0.06'; 
 $VERSION = eval $VERSION; ## no critic
 
 use Carp;
@@ -406,14 +406,15 @@ otherwise specified
 
 Current limitations:
 
-* Does not check any skip files before handing off to CPAN to test
+* Does not check any skip files before handing off to CPAN to test -- use 
+CPAN.pm "distroprefs" instead
 * Does not attempt to retest distributions that had reports discarded because 
 of prerequisites that could not be satisfied
 
-== Warning -- smoke testing is risky
+== WARNING -- smoke testing is risky
 
-Smoke testing downloads and runs programs other people have uploaded to CPAN.
-These programs could do *anything* to your system, including deleting
+Smoke testing will download and run programs that other people have uploaded to
+CPAN.  These programs could do *anything* to your system, including deleting
 everything on it.  Do not run CPAN::Reporter::Smoker unless you are prepared to
 take these risks.  
 
@@ -450,7 +451,83 @@ skip list is based on CPAN::Mini and matches as follows:
 		| /perl_mlb\.zip 
     )}xi,
 
-Bundles and mod_perl distributions will also not be tested.
+Bundles and mod_perl distributions will also not be tested, though mod_perl is
+likely to be requested as a dependency by many modules.  See the next section
+for how to tell CPAN.pm not to test certain dependencies.
+
+== Skipping additional distributions
+
+If certain distributions hang, crash or otherwise cause trouble, you can use
+CPAN's "distroprefs" system to disable them.  If a distribution is disabled, it
+won't be built or tested.  If a distribution's dependency is disabled, a 
+failing test is just discarded.
+
+The first step is configuring a directory for distroprefs files:
+
+    $ cpan
+    cpan> o conf init pref_dir
+    cpan> o conf commit
+
+Next, ensure that either the [YAML] or [YAML::Syck] module is installed.  
+(YAML::Syck is faster).  Then create a file in the {pref_dir} directory
+to hold the list of distributions to disable, e.g. call it {disabled.yml}
+
+In that file, you can add blocks of YAML code to disable distributions.  The
+match criteria "distribution" is a regex that matches against the canonical
+name of a distribution, e.g. {AUTHOR/Foo-Bar-3.14.tar.gz}.
+
+Here is a sample file to show you some syntax (don't actually use these,
+though):
+
+    ---
+    comment: "Tests take too long"
+    match:
+        distribution: "^DAGOLDEN/CPAN-Reporter-\d"
+    disabled: 1
+    ---
+    comment: "Skip Win32 distributions"
+    match:
+        distribution: "/Win32"
+    disabled: 1
+    ---
+    comment: "Skip distributions by Andy Lester"
+    match:
+        distribution: "^PETDANCE"
+    disabled: 1
+
+Please note that disabling distributions like this will also disable them
+for normal, non-smoke usage of CPAN.pm.
+
+One distribution that I would recommend either installing up front or else
+disabling with distroprefs is mod_perl, as it is a common requirement for many
+Apache:: modules but does not (easily) build and test under automation.
+
+    ---
+    comment: "Don't build mod_perl if required by some other module"
+    match:
+        distribution: "/mod_perl-\d"
+    disabled: 1
+
+Distroprefs are more powerful than this -- they can be used to automate
+responses to prompts in distributions, set environment variables, specify
+additional dependencies and so on.  Read the docs for CPAN.pm for more and
+look in the "distroprefs" directory in the CPAN distribution tarball for
+examples.
+
+== Turning off reports to authors 
+
+CPAN::Reporter (since 1.08) supports skipfiles to avoid copying certain authors
+on failing reports or to prevent sending a report at all to CPAN Testers.  Use
+these to stop sending reports if someone complains.  See
+[CPAN::Reporter::Config] for more details.
+
+Note -- these do not stop CPAN::Reporter::Smoker from processing distributions.
+They only change whether reports are sent and to whom.
+
+If you don't want to copy authors at all, set the "cc_author" option
+to "no" in your CPAN::Reporter config file.
+
+    cc_author = no
 
 == CPAN::Mini
 
@@ -474,6 +551,11 @@ home directory to include it in your local CPAN mirror.
 Note that CPAN::Mini does not mirror developer versions.  Therefore, a
 live, network CPAN Mirror will be needed in the urllist to retrieve these.
 
+Alternatively, you might experiment with the alpha-quality release of
+[CPAN::Mini::Devel], which subclasses CPAN::Mini to retrieve developer
+distributions (and find-ls.gz) using the same logic as 
+CPAN::Reporter::Smoker.
+
 == Timing out hanging tests
 
 CPAN::Reporter (since 1.08) supports a 'command_timeout' configuration option.
@@ -484,19 +566,6 @@ enough.
 
 Warning -- on Win32, terminating processes via the command_timeout is equivalent to
 SIGKILL and could cause system instability or later deadlocks
-
-== Skip files
-
-CPAN::Reporter (since 1.08) supports skipfiles to prevent copying authors
-on reports or from sending reports at all for certain distributions or authors'
-modules.  Use these to stop sending reports if someone complains.  See
-[CPAN::Reporter::Config] for more details.
-
-A future version may utilize these to avoid testing modules in the skiplist
-instead of taking the time to test them and then just not send the report.
-
-You may also wish to use CPAN.pm's "distroprefs" to disable testing of certain
-distributions.  See the documentation for CPAN for more details.
 
 == CPAN cache bloat
 
@@ -521,8 +590,8 @@ minimize some of the clutter to the screen as distributions are tested.
 
 == Test::Reporter timeouts and MAILDOMAIN
 
-On some systems (e.g. Win32), Test::Reporter takes a long time to determine the
-origin domain for mail.  Set the MAILDOMAIN environment variable instead to
+On some systems (e.g. Win32), Test::Reporter may take a long time to determine
+the origin domain for mail.  Set the MAILDOMAIN environment variable instead to
 avoid this delay.
 
 = USAGE
