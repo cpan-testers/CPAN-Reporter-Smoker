@@ -1,7 +1,11 @@
 Revision history for Perl module CPAN::Reporter::Smoker
 
-0.06
+0.06 Thu Mar  6 10:12:26 EST 2008
 
+    - Added documentation on using distroprefs to skip building and testing
+      certain distributions
+
+    - Edited other usage hints for clarity
 
 0.05 Tue Feb 26 22:56:12 EST 2008
 

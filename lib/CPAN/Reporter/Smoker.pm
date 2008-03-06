@@ -643,6 +643,8 @@ existing test-file that illustrates the bug or desired feature.
 * [CPAN]
 * [CPAN::Reporter]
 * [CPAN::Testers]
+* [CPAN::Mini]
+* [CPAN::Mini::Devel]
 
 = AUTHOR
 
