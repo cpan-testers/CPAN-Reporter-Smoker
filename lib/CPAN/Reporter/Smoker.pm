@@ -2,7 +2,7 @@ package CPAN::Reporter::Smoker;
 use 5.006;
 use strict;
 use warnings;
-our $VERSION = '0.06'; 
+our $VERSION = '0.07'; 
 $VERSION = eval $VERSION; ## no critic
 
 use Carp;
@@ -112,7 +112,7 @@ sub start {
                 next DIST;
             }
             else {
-                $CPAN::Frontend->mywarn( "Smoker: testing $base\n\n" );
+                $CPAN::Frontend->mywarn( "\nSmoker: testing $base\n\n" );
                 system($perl, "-MCPAN", "-e", "local \$CPAN::Config->{test_report} = 1; test( '$d' )");
                 _prompt_quit( $? & 127 ) if ( $? & 127 );
             }
