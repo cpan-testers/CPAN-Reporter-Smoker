@@ -112,7 +112,8 @@ sub start {
                 next DIST;
             }
             else {
-                $CPAN::Frontend->mywarn( "\nSmoker: testing $base\n\n" );
+                $CPAN::Frontend->mywarn( "\nSmoker: testing $base [ " .
+                    scalar localtime() . " ]\n\n" );
                 system($perl, "-MCPAN", "-e", "local \$CPAN::Config->{test_report} = 1; test( '$d' )");
                 _prompt_quit( $? & 127 ) if ( $? & 127 );
             }
@@ -576,6 +577,10 @@ periodically if you don't want to do this manually.
     $ cpan
     cpan> o conf init build_cache scan_cache
     cpan> o conf commit
+
+If set, the cache will be purged on start and whenever CPAN::Reporter::Smoker
+checks indices for new modules.  See the {restart_delay} option for the 
+{start()} function. 
 
 == CPAN verbosity
 

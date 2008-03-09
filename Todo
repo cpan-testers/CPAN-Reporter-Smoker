@@ -10,6 +10,8 @@ TODO list for Perl module CPAN::Reporter::Smoker
 
 # High priority
 
+- add timestamp to progress message
+
 # Medium priority
 
 - create old alpha modules for minicpan and confirm they *aren't* tested
