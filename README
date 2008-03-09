@@ -160,7 +160,7 @@ HINTS
 
          cc_author = no
 
-  CPAN::Mini
+  Using a local CPAN::Mini mirror
     Because distributions must be retrieved from a CPAN mirror, the smoker
     may cause heavy network load and will reptitively download common build
     prerequisites.
@@ -198,10 +198,40 @@ HINTS
     equivalent to SIGKILL and could cause system instability or later
     deadlocks
 
+  Avoiding repetitive prerequisite testing
+    Because CPAN::Reporter::Smoker satisfies all requirements from scratch,
+    common dependencies (e.g. Class::Accessor) will be unpacked, built and
+    tested repeatedly.
+
+    As of version 1.92_56, CPAN supports the "trust_test_report_history"
+    config option. When set, CPAN will check the last test report for a
+    distribution. If one is found, the results of that test are used instead
+    of running tests again.
+
+         $ cpan
+         cpan> o conf init trust_test_report_history
+         cpan> o conf commit
+
+  Stopping early if a prerequisite fails
+    Normally, CPAN.pm continues testing a distribution even if a prequisite
+    fails to build or fails testing. Some distributions may pass their tests
+    even without a listed prerequisite, but most just fail (and
+    CPAN::Reporter discards failures if prerequisites are not met).
+
+    As of version 1.92_57, CPAN supports the "halt_on_failure" config
+    option. When set, a prerequisite failure stops further processing.
+
+         $ cpan
+         cpan> o conf init halt_on_failure
+         cpan> o conf commit
+
   CPAN cache bloat
     CPAN will use a lot of scratch space to download, build and test
     modules. Use CPAN's built-in cache management configuration to let it
-    purge the cache periodically if you don't want to do this manually.
+    purge the cache periodically if you don't want to do this manually. When
+    configured, the cache will be purged on start and whenever
+    CPAN::Reporter::Smoker checks indices for new modules. See the
+    "restart_delay" option for the "start()" function.
 
          $ cpan
          cpan> o conf init build_cache scan_cache

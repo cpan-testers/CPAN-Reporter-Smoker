@@ -6,6 +6,9 @@ Revision history for Perl module CPAN::Reporter::Smoker
       as lines of text scroll by on the console; added localtime() timestamp
       to help users tell how long a test has been running (e.g hung?)
 
+    - Documented: using of 'trust_test_report_history' and 'halt_on_failure' 
+      config options from the latest dev release of CPAN.pm
+
     - Documented: cache purge happens when indices are checked for new distros
 
 0.06 Thu Mar  6 10:12:26 EST 2008
