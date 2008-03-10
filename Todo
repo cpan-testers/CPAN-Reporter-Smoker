@@ -10,20 +10,36 @@ TODO list for Perl module CPAN::Reporter::Smoker
 
 # High priority
 
-# Medium priority
+- must somehow flag distros that failed due to prerequisites -- otherwise,
+  each restart has to retest them, which eventually takes the full restart
+  period and then the smoker never makes it past that point
 
-- if interrupted, offer to send email to bug-Dist-Name@rt.cpan.org?
-    - use Net::SMTP?
+    - simplest is "per-session" -- just keep distribution ID's in a %seen
+      hash and skip if no history but seen
+    - could make that persistent
+    - particularly if persistent, would want to retest discards or skips
     
-- create old alpha modules for minicpan and confirm they *aren't* tested
-    - edit file-ls.gz
-
 - retest discards after some period of time
     - or after failing deps are updated -- but how to discover what these are?
       would need changes to CPAN::Reporter history logging to separately
       log DISCARD with the missing dependencies
+    - but halt_on_failure prevents a DISCARD message, so then what?  
+      Maybe this does need to be logged via CPAN::Reporter::Smoker
 
-- on CTRL-C, if CPAN has distroprefs, offer to auto-disable the current distro
+# Medium priority
+
+- if interrupted,  be more helpful
+    - offer to send email to bug-Dist-Name@rt.cpan.org? (use Net::SMTP and
+      CPAN::Reporter mail host?)
+    - if CPAN has distroprefs, offer to auto-disable the current distro, or
+      at least to open distroprefs in editor?
+    
+# Low/Maybe
+
+- docs: suggest that they join cpan-testers-discuss mailing list
+
+- create old alpha modules for minicpan and confirm they *aren't* tested
+    - edit file-ls.gz
 
 - dependencies
     - look at Module::Depends::Intrusive and CPAN::Unwind
@@ -31,18 +47,10 @@ TODO list for Perl module CPAN::Reporter::Smoker
 - statistics -- show counter of tests for each test run; show total tests 
   run at the end
 
-- docs: suggest that they join cpan-testers-discuss mailing list
-
-# Low/Maybe
-
 - logging STDERR to a file -- parameter to start()?
 
 - add some process control -- keep a proces ID in a run file and add a stop()
   commnd to stop a running process.
 
 - try Parse::CPAN::Meta as a way of getting dependencies?
-
-- find a way to clear CPAN programmatically instead of running in a subshell
-  or else find a way to patch CPAN's set_perl5lib to restrict to only
-  the necessary distributions
 
