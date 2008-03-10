@@ -10,10 +10,11 @@ TODO list for Perl module CPAN::Reporter::Smoker
 
 # High priority
 
-- add timestamp to progress message
-
 # Medium priority
 
+- if interrupted, offer to send email to bug-Dist-Name@rt.cpan.org?
+    - use Net::SMTP?
+    
 - create old alpha modules for minicpan and confirm they *aren't* tested
     - edit file-ls.gz
 
@@ -26,10 +27,6 @@ TODO list for Perl module CPAN::Reporter::Smoker
 
 - dependencies
     - look at Module::Depends::Intrusive and CPAN::Unwind
-
-- eventually, test and mention 'halt_on_failure' config option to shortcut
-  when a dependency fails (though this misses where dependency upgrade fails
-  and yet module succeeds)
 
 - statistics -- show counter of tests for each test run; show total tests 
   run at the end

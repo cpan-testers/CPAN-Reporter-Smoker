@@ -18,6 +18,7 @@ requires:
   File::Spec: 3.27
   File::Temp: 0.2
   Probe::Perl: 0.01
+  Term::Title: 0.01
   perl: 5.006
 build_requires:
   Cwd: 3.27

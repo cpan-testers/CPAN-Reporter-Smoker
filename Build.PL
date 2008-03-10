@@ -23,6 +23,7 @@ $class->new(
         'File::Spec' => 3.27, 
         'File::Temp' => 0.20, 
         'Probe::Perl' => 0.01,
+        'Term::Title' => 0.01,
     },
     build_requires => {
         'Cwd' => 3.27, 

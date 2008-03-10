@@ -1,12 +1,18 @@
 Revision history for Perl module CPAN::Reporter::Smoker
 
-0.07
+0.07 Mon Mar 10 08:32:50 EDT 2008
+
+    - Added: Sets title of terminal window (xterm or Win32) to indicate 
+      current distribution being smoked (adds Term::Title as prereq)
+
+    - Changed: interrupting smoker with CTRL-C now shows what distribution
+      was interrupted (helpful for disabling in distroprefs)
 
     - Changed: progress message -- added blank line before to help it stand out
-      as lines of text scroll by on the console; added localtime() timestamp
-      to help users tell how long a test has been running (e.g hung?)
+      and localtime() timestamp to help see how long a test has been running
+      (e.g is it hung?)
 
-    - Documented: using of 'trust_test_report_history' and 'halt_on_failure' 
+    - Documented: how to use 'trust_test_report_history' and 'halt_on_failure' 
       config options from the latest dev release of CPAN.pm
 
     - Documented: cache purge happens when indices are checked for new distros

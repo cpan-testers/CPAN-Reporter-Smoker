@@ -16,6 +16,7 @@ use File::Temp 0.20;
 use File::Spec;
 use File::Basename qw/basename/;
 use Probe::Perl;
+use Term::Title;
 
 use Exporter;
 our @ISA = 'Exporter';
@@ -66,6 +67,9 @@ sub start {
     # Always accept default prompts
     local $ENV{PERL_MM_USE_DEFAULT} = 1;
 
+    # Win32 SIGINT propogates all the way to us, so trap it before we smoke
+    local $SIG{INT} = \&_prompt_quit;
+
     # Load CPAN configuration
     my $init_cpan = 0;
     unless ( $init_cpan++ ) {
@@ -74,9 +78,6 @@ sub start {
         CPAN::Index->reload;
         $CPAN::META->checklock(); # needed for cache scanning
     }
-
-    # Win32 SIGINT propogates all the way to us, so trap it before we smoke
-    local $SIG{INT} = \&_prompt_quit;
 
     # Master loop
     # loop counter will increment with each restart - useful for testing
@@ -89,6 +90,7 @@ sub start {
         # Get the list of distributions to process
         my $package = _get_module_index( 'modules/02packages.details.txt.gz' );
         my $find_ls = _get_module_index( 'indices/find-ls.gz' );
+        CPAN::Index->reload;
         $CPAN::Frontend->mywarn( "Smoker: scanning and sorting index\n");
 
         my $dists = _parse_module_index( $package, $find_ls );
@@ -106,14 +108,17 @@ sub start {
         for my $d ( @$dists ) {
             my $dist = CPAN::Shell->expandany($d);
             my $base = $dist->base_id;
+            local $ENV{PERL_CR_SMOKER_CURRENT} = $base;
             if ( CPAN::Reporter::History::have_tested( dist => $base ) ) {
                 $CPAN::Frontend->mywarn( 
                     "Smoker: already tested $base\n");
                 next DIST;
             }
             else {
-                $CPAN::Frontend->mywarn( "\nSmoker: testing $base [ " .
-                    scalar localtime() . " ]\n\n" );
+                my $time = scalar localtime();
+                my $msg = "$base [ $time ]";
+                Term::Title::set_titlebar( "Smoking $msg" );
+                $CPAN::Frontend->mywarn( "\nSmoker: testing $msg\n\n" );
                 system($perl, "-MCPAN", "-e", "local \$CPAN::Config->{test_report} = 1; test( '$d' )");
                 _prompt_quit( $? & 127 ) if ( $? & 127 );
             }
@@ -139,6 +144,9 @@ sub _prompt_quit {
         my @signals = split q{ }, $Config{sig_name};
         $sig = $signals[$sig] || '???';
     }
+    $CPAN::Frontend->myprint( 
+        "\nStopped during $ENV{PERL_CR_SMOKER_CURRENT}.\n" 
+    ) if defined $ENV{PERL_CR_SMOKER_CURRENT};
     $CPAN::Frontend->myprint(
         "\nCPAN testing halted on SIG$sig.  Continue (y/n)? [n]\n"
     );
