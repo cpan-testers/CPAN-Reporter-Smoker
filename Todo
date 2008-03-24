@@ -10,22 +10,6 @@ TODO list for Perl module CPAN::Reporter::Smoker
 
 # High priority
 
-- must somehow flag distros that failed due to prerequisites -- otherwise,
-  each restart has to retest them, which eventually takes the full restart
-  period and then the smoker never makes it past that point
-
-    - simplest is "per-session" -- just keep distribution ID's in a %seen
-      hash and skip if no history but seen
-    - could make that persistent
-    - particularly if persistent, would want to retest discards or skips
-    
-- retest discards after some period of time
-    - or after failing deps are updated -- but how to discover what these are?
-      would need changes to CPAN::Reporter history logging to separately
-      log DISCARD with the missing dependencies
-    - but halt_on_failure prevents a DISCARD message, so then what?  
-      Maybe this does need to be logged via CPAN::Reporter::Smoker
-
 # Medium priority
 
 - if interrupted,  be more helpful
@@ -34,6 +18,14 @@ TODO list for Perl module CPAN::Reporter::Smoker
     - if CPAN has distroprefs, offer to auto-disable the current distro, or
       at least to open distroprefs in editor?
     
+- retest discards after some period of time
+    - would need CPAN::Reporter::History to keep timestamp
+    - or after failing deps are updated -- but how to discover what these are?
+      would need changes to CPAN::Reporter history logging to separately
+      log DISCARD with the missing dependencies
+    - but halt_on_failure prevents a DISCARD message, so then what?  
+      Maybe this does need to be logged via CPAN::Reporter::Smoker
+
 # Low/Maybe
 
 - docs: suggest that they join cpan-testers-discuss mailing list

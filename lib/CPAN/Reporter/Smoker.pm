@@ -2,7 +2,7 @@ package CPAN::Reporter::Smoker;
 use 5.006;
 use strict;
 use warnings;
-our $VERSION = '0.07'; 
+our $VERSION = '0.08'; 
 $VERSION = eval $VERSION; ## no critic
 
 use Carp;
@@ -83,6 +83,7 @@ sub start {
     # Master loop
     # loop counter will increment with each restart - useful for testing
     my $loop_counter = 0;
+    my %seen; # global cache of distros smoked to speed skips on restart
     SCAN_LOOP:
     while ( 1 ) {
         $loop_counter++;
@@ -110,7 +111,9 @@ sub start {
             my $dist = CPAN::Shell->expandany($d);
             my $base = $dist->base_id;
             local $ENV{PERL_CR_SMOKER_CURRENT} = $base;
-            if ( CPAN::Reporter::History::have_tested( dist => $base ) ) {
+            if ( $seen{$base}++ || 
+                 CPAN::Reporter::History::have_tested( dist => $base ) 
+            ) {
                 $CPAN::Frontend->mywarn( 
                     "Smoker: already tested $base\n");
                 next DIST;
