@@ -225,6 +225,12 @@ HINTS
          cpan> o conf init halt_on_failure
          cpan> o conf commit
 
+    However, a disadvantage of halting early is that no DISCARD grade is
+    recorded in the history. The next time CPAN::Reporter::Smoker runs, the
+    distribution will be tested again from scratch. It may be better to let
+    all prerequisites finish so the distribution can fail its test and be
+    flagged with DISCARD so it will be skipped in the future.
+
   CPAN cache bloat
     CPAN will use a lot of scratch space to download, build and test
     modules. Use CPAN's built-in cache management configuration to let it

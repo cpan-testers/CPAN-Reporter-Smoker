@@ -1,5 +1,14 @@
 Revision history for Perl module CPAN::Reporter::Smoker
 
+0.08 Mon Mar 24 13:46:46 EDT 2008
+
+    - Changed: smoker now maintains a cache of distributions seen during 
+      a session to speed up skipping distributions already tested when
+      the smoker rechecks indices and restarts testing
+    
+    - Fixed: our $SIG{INT} handler now installed *after* CPAN.pm installs its 
+      handler so we take precedence
+
 0.07 Mon Mar 10 08:32:50 EDT 2008
 
     - Added: Sets title of terminal window (xterm or Win32) to indicate 
