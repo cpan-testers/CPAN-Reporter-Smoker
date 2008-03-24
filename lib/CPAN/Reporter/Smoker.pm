@@ -67,9 +67,6 @@ sub start {
     # Always accept default prompts
     local $ENV{PERL_MM_USE_DEFAULT} = 1;
 
-    # Win32 SIGINT propogates all the way to us, so trap it before we smoke
-    local $SIG{INT} = \&_prompt_quit;
-
     # Load CPAN configuration
     my $init_cpan = 0;
     unless ( $init_cpan++ ) {
@@ -78,6 +75,10 @@ sub start {
         CPAN::Index->reload;
         $CPAN::META->checklock(); # needed for cache scanning
     }
+
+    # Win32 SIGINT propogates all the way to us, so trap it before we smoke
+    # Must come *after* checklock() to override CPAN's $SIG{INT}
+    local $SIG{INT} = \&_prompt_quit;
 
     # Master loop
     # loop counter will increment with each restart - useful for testing
