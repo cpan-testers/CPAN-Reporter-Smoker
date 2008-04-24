@@ -3,29 +3,29 @@ require 5.006;
 use ExtUtils::MakeMaker;
 WriteMakefile
 (
-          'PL_FILES' => {},
-          'INSTALLDIRS' => 'site',
           'NAME' => 'CPAN::Reporter::Smoker',
-          'EXE_FILES' => [],
           'VERSION_FROM' => 'lib/CPAN/Reporter/Smoker.pm',
           'PREREQ_PM' => {
-                           'Compress::Zlib' => '1.2',
-                           'Term::Title' => '0.01',
-                           'IO::CaptureOutput' => '1.06',
-                           'File::Spec' => '3.27',
-                           'CPAN::Reporter::History' => '1.11',
-                           'Probe::Perl' => '0.01',
-                           'File::Path' => 0,
-                           'Module::Build' => '0.28',
-                           'IO::File' => 0,
-                           'ExtUtils::MakeMaker' => '6.36',
-                           'Exporter' => 0,
-                           'Carp' => 0,
-                           'Test::More' => '0.62',
-                           'File::Temp' => '0.2',
                            'CPAN' => '1.92',
+                           'CPAN::Reporter::History' => '1.11',
+                           'Carp' => 0,
+                           'Compress::Zlib' => '1.2',
+                           'Cwd' => '3.27',
+                           'Exporter' => 0,
+                           'ExtUtils::MakeMaker' => '6.36',
                            'File::Basename' => 0,
-                           'Cwd' => '3.27'
-                         }
+                           'File::Path' => 0,
+                           'File::Spec' => '3.27',
+                           'File::Temp' => '0.2',
+                           'IO::CaptureOutput' => '1.06',
+                           'IO::File' => 0,
+                           'Module::Build' => '0.28',
+                           'Probe::Perl' => '0.01',
+                           'Term::Title' => '0.01',
+                           'Test::More' => '0.62'
+                         },
+          'INSTALLDIRS' => 'site',
+          'EXE_FILES' => [],
+          'PL_FILES' => {}
         )
 ;

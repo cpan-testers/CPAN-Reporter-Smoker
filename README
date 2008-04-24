@@ -2,7 +2,7 @@ NAME
     CPAN::Reporter::Smoker - Turnkey CPAN Testers smoking
 
 VERSION
-    This documentation describes version 0.08.
+    This documentation describes version 0.09.
 
 SYNOPSIS
          $ perl -MCPAN::Reporter::Smoker -e start
@@ -95,11 +95,11 @@ HINTS
     The first step is configuring a directory for distroprefs files:
 
          $ cpan
-         cpan> o conf init pref_dir
+         cpan> o conf init prefs_dir
          cpan> o conf commit
 
     Next, ensure that either the YAML or YAML::Syck module is installed.
-    (YAML::Syck is faster). Then create a file in the "pref_dir" directory
+    (YAML::Syck is faster). Then create a file in the "prefs_dir" directory
     to hold the list of distributions to disable, e.g. call it
     "disabled.yml"
 
