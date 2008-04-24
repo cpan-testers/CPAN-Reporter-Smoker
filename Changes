@@ -1,6 +1,6 @@
 Revision history for Perl module CPAN::Reporter::Smoker
 
-0.09
+0.09 Wed Apr 23 22:56:17 EDT 2008
 
     - Documented: CPAN distroprefs option is 'prefs_dir' not 'pref_dir'
       (Serguei Trouchelle)
