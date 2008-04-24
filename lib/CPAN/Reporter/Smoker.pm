@@ -2,7 +2,7 @@ package CPAN::Reporter::Smoker;
 use 5.006;
 use strict;
 use warnings;
-our $VERSION = '0.08'; 
+our $VERSION = '0.09'; 
 $VERSION = eval $VERSION; ## no critic
 
 use Carp;
@@ -478,11 +478,11 @@ failing test is just discarded.
 The first step is configuring a directory for distroprefs files:
 
     $ cpan
-    cpan> o conf init pref_dir
+    cpan> o conf init prefs_dir
     cpan> o conf commit
 
 Next, ensure that either the [YAML] or [YAML::Syck] module is installed.  
-(YAML::Syck is faster).  Then create a file in the {pref_dir} directory
+(YAML::Syck is faster).  Then create a file in the {prefs_dir} directory
 to hold the list of distributions to disable, e.g. call it {disabled.yml}
 
 In that file, you can add blocks of YAML code to disable distributions.  The
