@@ -1,5 +1,12 @@
 Revision history for Perl module CPAN::Reporter::Smoker
 
+0.09
+
+    - Changed: if CPAN config option 'build_dir_reuse' is true and CPAN has
+      the 'reset_tested' method, then 'reset_tested' will be called prior
+      to each distribution's smoke test to limit PERL5INC to direct
+      dependencies only instead of all available build directories
+
 0.08 Mon Mar 24 13:46:46 EDT 2008
 
     - Changed: smoker now maintains a cache of distributions seen during 

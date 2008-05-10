@@ -2,7 +2,7 @@ package CPAN::Reporter::Smoker;
 use 5.006;
 use strict;
 use warnings;
-our $VERSION = '0.08'; 
+our $VERSION = '0.09'; 
 $VERSION = eval $VERSION; ## no critic
 
 use Carp;
@@ -105,6 +105,14 @@ sub start {
             $CPAN::META->{cachemgr} = CPAN::CacheMgr->new(); # also scans cache
         }
         
+        # Check if we need to manually reset test history each time through
+        my $reset_string = q{};
+        if ( $CPAN::Config->{build_dir_reuse} 
+          && $CPAN::META->can('reset_tested') )
+        {
+          $reset_string = '$CPAN::META->reset_tested; '
+        }
+
         # Start smoking
         DIST:
         for my $d ( @$dists ) {
@@ -123,7 +131,10 @@ sub start {
                 my $msg = "$base [ $time ]";
                 Term::Title::set_titlebar( "Smoking $msg" );
                 $CPAN::Frontend->mywarn( "\nSmoker: testing $msg\n\n" );
-                system($perl, "-MCPAN", "-e", "local \$CPAN::Config->{test_report} = 1; test( '$d' )");
+                system($perl, "-MCPAN", "-e", 
+                  "local \$CPAN::Config->{test_report} = 1; " 
+                  . $reset_string . "test( '$d' )"
+                );
                 _prompt_quit( $? & 127 ) if ( $? & 127 );
             }
             next SCAN_LOOP if time - $loop_start_time > $args{restart_delay};
