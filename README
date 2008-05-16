@@ -182,6 +182,9 @@ HINTS
     live, network CPAN Mirror will be needed in the urllist to retrieve
     these.
 
+    Note that CPAN requires the LWP module to be installed to use a local
+    CPAN mirror.
+
     Alternatively, you might experiment with the alpha-quality release of
     CPAN::Mini::Devel, which subclasses CPAN::Mini to retrieve developer
     distributions (and find-ls.gz) using the same logic as
@@ -198,6 +201,8 @@ HINTS
     equivalent to SIGKILL and could cause system instability or later
     deadlocks
 
+    This option is still considered experimental.
+
   Avoiding repetitive prerequisite testing
     Because CPAN::Reporter::Smoker satisfies all requirements from scratch,
     common dependencies (e.g. Class::Accessor) will be unpacked, built and
@@ -210,6 +215,32 @@ HINTS
 
          $ cpan
          cpan> o conf init trust_test_report_history
+         cpan> o conf commit
+
+  Avoiding repetitive prerequisite builds
+    CPAN has a "build_dir_reuse" config option. When set (and if a YAML
+    module is installed and configured), CPAN will attempt to make build
+    directories persistent. This has the unfortunate side-effect of
+    ballooning "PERL5LIB" with all build directories that ever passed their
+    tests. When smoke testing, this is potentially fatal if the maximum
+    environment variable is exceeded.
+
+    However, as of version 1.92_59, CPAN has a function to reset the list of
+    directories to be included in "PERL5LIB". If this function is available,
+    CPAN::Reporter::Smoker will reset the list prior to testing each
+    distribution.
+
+    Also, CPAN version 1.92_58 changed to use an external YAML file to load
+    large numbers of prerequisite directories instead of relying on
+    "PERL5LIB". While slightly buggy when first introduced, it has stablized
+    around 1.92_61.
+
+    Taken together, "build_dir_reuse" now has the potential to save
+    substantial time and space during smoke testing, but please make sure to
+    use the latest version of CPAN to avoid major problems.
+
+         $ cpan
+         cpan> o conf init build_dir_reuse
          cpan> o conf commit
 
   Stopping early if a prerequisite fails
@@ -235,9 +266,9 @@ HINTS
     CPAN will use a lot of scratch space to download, build and test
     modules. Use CPAN's built-in cache management configuration to let it
     purge the cache periodically if you don't want to do this manually. When
-    configured, the cache will be purged on start and whenever
-    CPAN::Reporter::Smoker checks indices for new modules. See the
-    "restart_delay" option for the "start()" function.
+    configured, the cache will be purged on start and after a certain number
+    of distributions have been tested as determined by the
+    "clean_cache_after" option for the "start()" function.
 
          $ cpan
          cpan> o conf init build_cache scan_cache
@@ -265,12 +296,23 @@ USAGE
     CPAN::Reporter's .cpanreporter directory. Runs until all distributions
     are tested or the process is halted with CTRL-C or otherwise killed.
 
-    "start()" takes one optional argument:
+    "start()" supports several optional arguments:
+
+    *   "clean_cache_after" -- number of distributions that will be tested
+        before checking to see if the CPAN build cache needs to be cleaned
+        up (not including any prerequisites tested); must be a positive
+        integer; defaults to 100
 
     *   "restart_delay" -- number of seconds that must elapse before
         restarting smoke testing; this will reload indices to search for new
         distributions and restart testing from the most recent distribution;
-        defaults to 43200 seconds (12 hours)
+        must be a positive integer; defaults to 43200 seconds (12 hours)
+
+    *   "set_term_title" -- toggle for whether the terminal titlebar will be
+        updated with the distribution being smoke tested and the starting
+        time of the test; helps determine if a test is hung and which
+        distribution might be responsible; valid values are 0 or 1; defaults
+        to 1
 
 ENVIRONMENT
     Automatically sets the following environment variables to true values

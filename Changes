@@ -1,11 +1,20 @@
 Revision history for Perl module CPAN::Reporter::Smoker
 
-0.09
+0.09 Fri May 16 08:27:47 EDT 2008
+
+    - Added: 'clean_cache_after' argument to have CPAN clean its build cache
+      after a certain number of distributions are smoked (default 100)
+
+    - Added: 'set_term_title' boolean argument to control whether the terminal
+      title is updated or not (default 1)
 
     - Changed: if CPAN config option 'build_dir_reuse' is true and CPAN has
       the 'reset_tested' method, then 'reset_tested' will be called prior
       to each distribution's smoke test to limit PERL5INC to direct
       dependencies only instead of all available build directories
+
+    - Documented: how to use (and limitations of) CPAN's build_dir_reuse
+      config option
 
 0.08 Mon Mar 24 13:46:46 EDT 2008
 

@@ -14,8 +14,16 @@ my @good_args = (
         args => [],
     },
     {
+        label => "clean_cache_after",
+        args => [ clean_cache_after => 10 ],
+    },
+    {
         label => "restart_delay",
         args => [ restart_delay => 30],
+    },
+    {
+        label => "set_term_title",
+        args => [ set_term_title => 0 ],
     },
 );
 
@@ -25,8 +33,28 @@ my @bad_args = (
         args => [ 30 ],
     },
     {
+        label => "clean_cache_after alpha",
+        args => [ clean_cache_after => 'abc' ],
+    },
+    {
+        label => "clean_cache_after negative",
+        args => [ clean_cache_after => '-1' ],
+    },
+    {
+        label => "clean_cache_after mixed alphanum",
+        args => [ clean_cache_after => 'abc 123' ],
+    },
+    {
         label => "restart_delay with alpha",
         args => [ restart_delay => 'abc'],
+    },
+    {
+        label => "set_term_title with alpha",
+        args => [ set_term_title => 'y' ],
+    },
+    {
+        label => "set_term_title with 2",
+        args => [ set_term_title => 2 ],
     },
 );
 

@@ -37,9 +37,17 @@ my $tmp_dir = File::Temp::tempdir;
 # start -- start automated smoking
 #--------------------------------------------------------------------------#
 my %spec = (
+    clean_cache_after => { 
+        default => 100, 
+        is_valid => sub { /^\d+$/ },
+    },
     restart_delay => { 
         default => 12 * 3600, # 12 hours
-        is_valid => sub { /\d+/ },
+        is_valid => sub { /^\d+$/ },
+    },
+    set_term_title => { 
+        default => 1,       
+        is_valid => sub { /^[01]$/ },
     },
 );
  
@@ -97,21 +105,17 @@ sub start {
 
         my $dists = _parse_module_index( $package, $find_ls );
 
-        # Possibly clean up cache
-        if ( $CPAN::META->{cachemgr} ) {
-            $CPAN::META->{cachemgr}->scan_cache();
-        }
-        else {
-            $CPAN::META->{cachemgr} = CPAN::CacheMgr->new(); # also scans cache
-        }
-        
-        # Check if we need to manually reset test history each time through
+        # Check if we need to manually reset test history during each dist loop 
         my $reset_string = q{};
         if ( $CPAN::Config->{build_dir_reuse} 
           && $CPAN::META->can('reset_tested') )
         {
           $reset_string = '$CPAN::META->reset_tested; '
         }
+
+        # Clean cache on start and count dists tested to trigger cache cleanup
+        _clean_cache();
+        my $dists_tested = 0;
 
         # Start smoking
         DIST:
@@ -129,13 +133,20 @@ sub start {
             else {
                 my $time = scalar localtime();
                 my $msg = "$base [ $time ]";
-                Term::Title::set_titlebar( "Smoking $msg" );
+                if ( $args{set_term_title} ) {
+                  Term::Title::set_titlebar( "Smoking $msg" );
+                }
                 $CPAN::Frontend->mywarn( "\nSmoker: testing $msg\n\n" );
                 system($perl, "-MCPAN", "-e", 
                   "local \$CPAN::Config->{test_report} = 1; " 
                   . $reset_string . "test( '$d' )"
                 );
                 _prompt_quit( $? & 127 ) if ( $? & 127 );
+                $dists_tested++;
+            }
+            if ( $dists_tested >= $args{clean_cache_after} ) {
+              _clean_cache();
+              $dists_tested = 0;
             }
             next SCAN_LOOP if time - $loop_start_time > $args{restart_delay};
         }
@@ -152,6 +163,16 @@ sub start {
 # private variables and functions
 #--------------------------------------------------------------------------#
 
+sub _clean_cache {
+  # Possibly clean up cache if it exceeds defined size
+  if ( $CPAN::META->{cachemgr} ) {
+    $CPAN::META->{cachemgr}->scan_cache();
+  }
+  else {
+    $CPAN::META->{cachemgr} = CPAN::CacheMgr->new(); # also scans cache
+  }
+}
+        
 sub _prompt_quit {
     my ($sig) = @_;
     # convert numeric to name
@@ -575,6 +596,9 @@ home directory to include it in your local CPAN mirror.
 Note that CPAN::Mini does not mirror developer versions.  Therefore, a
 live, network CPAN Mirror will be needed in the urllist to retrieve these.
 
+Note that CPAN requires the LWP module to be installed to use a local CPAN
+mirror.
+
 Alternatively, you might experiment with the alpha-quality release of
 [CPAN::Mini::Devel], which subclasses CPAN::Mini to retrieve developer
 distributions (and find-ls.gz) using the same logic as 
@@ -591,6 +615,8 @@ enough.
 Warning -- on Win32, terminating processes via the command_timeout is equivalent to
 SIGKILL and could cause system instability or later deadlocks
 
+This option is still considered experimental.
+
 == Avoiding repetitive prerequisite testing
 
 Because CPAN::Reporter::Smoker satisfies all requirements from scratch, common
@@ -604,6 +630,30 @@ again.
 
     $ cpan
     cpan> o conf init trust_test_report_history
+    cpan> o conf commit
+
+== Avoiding repetitive prerequisite builds
+
+CPAN has a {build_dir_reuse} config option.  When set (and if a YAML module
+is installed and configured), CPAN will attempt to make build directories 
+persistent.  This has the unfortunate side-effect of ballooning {PERL5LIB}
+with all build directories that ever passed their tests.  When smoke testing,
+this is potentially fatal if the maximum environment variable is exceeded.
+
+However, as of version 1.92_59, CPAN has a function to reset the list of
+directories to be included in {PERL5LIB}.  If this function is available,
+CPAN::Reporter::Smoker will reset the list prior to testing each distribution.
+
+Also, CPAN version 1.92_58 changed to use an external YAML file to load 
+large numbers of prerequisite directories instead of relying on {PERL5LIB}.
+While slightly buggy when first introduced, it has stablized around 1.92_61.
+
+Taken together, {build_dir_reuse} now has the potential to save substantial
+time and space during smoke testing, but please make sure to use the latest
+version of CPAN to avoid major problems.
+
+    $ cpan
+    cpan> o conf init build_dir_reuse
     cpan> o conf commit
 
 == Stopping early if a prerequisite fails
@@ -631,8 +681,9 @@ with DISCARD so it will be skipped in the future.
 CPAN will use a lot of scratch space to download, build and test modules.  Use
 CPAN's built-in cache management configuration to let it purge the cache
 periodically if you don't want to do this manually.  When configured, the cache
-will be purged on start and whenever CPAN::Reporter::Smoker checks indices for
-new modules.  See the {restart_delay} option for the {start()} function. 
+will be purged on start and after a certain number of distributions have
+been tested as determined by the {clean_cache_after} option for the 
+{start()} function. 
 
     $ cpan
     cpan> o conf init build_cache scan_cache
@@ -663,12 +714,20 @@ Starts smoke testing using defaults already in CPAN::Config and
 CPAN::Reporter's .cpanreporter directory.  Runs until all distributions are
 tested or the process is halted with CTRL-C or otherwise killed.
 
-{start()} takes one optional argument:
+{start()} supports several optional arguments:
 
+* {clean_cache_after} -- number of distributions that will be tested 
+before checking to see if the CPAN build cache needs to be cleaned up 
+(not including any prerequisites tested); must be a positive integer;
+defaults to 100
 * {restart_delay} -- number of seconds that must elapse before restarting 
 smoke testing; this will reload indices to search for new distributions
-and restart testing from the most recent distribution; defaults to 
-43200 seconds (12 hours)
+and restart testing from the most recent distribution; must be a positive
+integer; defaults to 43200 seconds (12 hours)
+* {set_term_title} -- toggle for whether the terminal titlebar will be
+updated with the distribution being smoke tested and the starting time
+of the test; helps determine if a test is hung and which distribution
+might be responsible; valid values are 0 or 1; defaults to 1
 
 = ENVIRONMENT
 
