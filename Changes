@@ -1,5 +1,10 @@
 Revision history for Perl module CPAN::Reporter::Smoker
 
+0.11 Sat May 17 11:59:08 EDT 2008
+
+    - Documented: support for 'build_dir_reuse' is experimental and needs
+      CPAN 1.92_62 (as yet unreleased) to work properly
+    
 0.10 Fri May 16 08:27:47 EDT 2008
 
     - Added: 'clean_cache_after' argument to have CPAN clean its build cache

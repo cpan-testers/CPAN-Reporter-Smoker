@@ -2,7 +2,7 @@ package CPAN::Reporter::Smoker;
 use 5.006;
 use strict;
 use warnings;
-our $VERSION = '0.10'; 
+our $VERSION = '0.11'; 
 $VERSION = eval $VERSION; ## no critic
 
 use Carp;
@@ -632,25 +632,17 @@ again.
     cpan> o conf init trust_test_report_history
     cpan> o conf commit
 
-== Avoiding repetitive prerequisite builds
+== Avoiding repetitive prerequisite builds (EXPERIMENTAL)
 
-CPAN has a {build_dir_reuse} config option.  When set (and if a YAML module
-is installed and configured), CPAN will attempt to make build directories 
-persistent.  This has the unfortunate side-effect of ballooning {PERL5LIB}
-with all build directories that ever passed their tests.  When smoke testing,
-this is potentially fatal if the maximum environment variable is exceeded.
+CPAN has a {build_dir_reuse} config option.  When set (and if a YAML module is
+installed and configured), CPAN will attempt to make build directories
+persistent.  This has the potential to save substantial time and space during
+smoke testing.  CPAN::Reporter::Smoker will recognize if this option is set
+and make adjustments to the test process to keep PERL5LIB from growing
+uncontrollably as the number of persistent directories increases.
 
-However, as of version 1.92_59, CPAN has a function to reset the list of
-directories to be included in {PERL5LIB}.  If this function is available,
-CPAN::Reporter::Smoker will reset the list prior to testing each distribution.
-
-Also, CPAN version 1.92_58 changed to use an external YAML file to load 
-large numbers of prerequisite directories instead of relying on {PERL5LIB}.
-While slightly buggy when first introduced, it has stablized around 1.92_61.
-
-Taken together, {build_dir_reuse} now has the potential to save substantial
-time and space during smoke testing, but please make sure to use the latest
-version of CPAN to avoid major problems.
+*NOTE:* Support for {build_dir_reuse} is highly experimental. Wait for at least
+CPAN version 1.92_62 before trying this option.
 
     $ cpan
     cpan> o conf init build_dir_reuse
