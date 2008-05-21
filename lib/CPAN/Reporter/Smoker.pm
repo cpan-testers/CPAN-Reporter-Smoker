@@ -91,7 +91,10 @@ sub start {
     # Master loop
     # loop counter will increment with each restart - useful for testing
     my $loop_counter = 0;
-    my %seen; # global cache of distros smoked to speed skips on restart
+
+    # global cache of distros smoked to speed skips on restart
+    my %seen = map { $_->{dist} => 1 } CPAN::Reporter::History::have_tested();
+
     SCAN_LOOP:
     while ( 1 ) {
         $loop_counter++;
@@ -123,9 +126,7 @@ sub start {
             my $dist = CPAN::Shell->expandany($d);
             my $base = $dist->base_id;
             local $ENV{PERL_CR_SMOKER_CURRENT} = $base;
-            if ( $seen{$base}++ || 
-                 CPAN::Reporter::History::have_tested( dist => $base ) 
-            ) {
+            if ( $seen{$base}++ ) {
                 $CPAN::Frontend->mywarn( 
                     "Smoker: already tested $base\n");
                 next DIST;
