@@ -8,7 +8,7 @@ CPAN::Reporter::Smoker - Turnkey CPAN Testers smoking
 
 =head1 VERSION
 
-This documentation describes version 0.11.
+This documentation describes version 0.12.
 
 =head1 SYNOPSIS
 
