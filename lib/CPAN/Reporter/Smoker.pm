@@ -108,6 +108,8 @@ sub start {
 
         my $dists = _parse_module_index( $package, $find_ls );
 
+        $CPAN::Frontend->mywarn( "Smoker: found " . scalar @$dists . " distributions on CPAN\n");
+
         # Check if we need to manually reset test history during each dist loop 
         my $reset_string = q{};
         if ( $CPAN::Config->{build_dir_reuse} 
