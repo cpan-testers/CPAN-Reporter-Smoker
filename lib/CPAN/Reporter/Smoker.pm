@@ -155,7 +155,13 @@ sub start {
         }
         last SCAN_LOOP if $ENV{PERL_CR_SMOKER_RUNONCE};
         # if here, we are out of distributions to test, so sleep
-        sleep $args{restart_delay} - ( time - $loop_start_time );
+        my $delay = int( $args{restart_delay} - ( time - $loop_start_time ));
+        if ( $delay > 0 ) {
+          $CPAN::Frontend->mywarn( 
+            "\nSmoker: Finished all available dists. Sleeping for $delay seconds.\n\n" 
+          );
+          sleep $delay ;
+        }
     }
 
     CPAN::cleanup();
