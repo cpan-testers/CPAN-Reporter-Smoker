@@ -30,6 +30,8 @@ TODO list for Perl module CPAN::Reporter::Smoker
 
 - docs: suggest that they join cpan-testers-discuss mailing list
 
+- docs: document how to disable CPANPLUS
+
 - create old alpha modules for minicpan and confirm they *aren't* tested
     - edit file-ls.gz
 
