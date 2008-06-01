@@ -124,25 +124,26 @@ sub start {
 
         # Start smoking
         DIST:
-        for my $d ( @$dists ) {
-            my $dist = CPAN::Shell->expandany($d);
+        for my $d ( 0 .. $#{$dists} ) {
+            my $dist = CPAN::Shell->expandany($dists->[$d]);
             my $base = $dist->base_id;
             local $ENV{PERL_CR_SMOKER_CURRENT} = $base;
+            my $count = sprintf('%d/%d', $d+1, scalar @$dists);
             if ( $seen{$base}++ ) {
                 $CPAN::Frontend->mywarn( 
-                    "Smoker: already tested $base\n");
+                    "Smoker: already tested $base [$count]\n");
                 next DIST;
             }
             else {
                 my $time = scalar localtime();
-                my $msg = "$base [ $time ]";
+                my $msg = "$base [$count] at $time";
                 if ( $args{set_term_title} ) {
                   Term::Title::set_titlebar( "Smoking $msg" );
                 }
                 $CPAN::Frontend->mywarn( "\nSmoker: testing $msg\n\n" );
                 system($perl, "-MCPAN", "-e", 
                   "local \$CPAN::Config->{test_report} = 1; " 
-                  . $reset_string . "test( '$d' )"
+                  . $reset_string . "test( '$dists->[$d]' )"
                 );
                 _prompt_quit( $? & 127 ) if ( $? & 127 );
                 $dists_tested++;

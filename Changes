@@ -3,6 +3,7 @@ Revision history for Perl module CPAN::Reporter::Smoker
 0.12
 
     - Added: shows count of distributions found when index is processed
+      and number of the current distribution being tested
 
     - Changed: CPAN::Reporter history is cached at startup for faster 
       processing of distributions already tested
