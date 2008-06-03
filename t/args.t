@@ -26,10 +26,10 @@ my @good_args = (
         args => [ set_term_title => 0 ],
     },
     {
-    {
         label => "status_file - dir/file",
         args => [ status_file => File::Spec->catfile( File::Spec->tmpdir, 'foo.txt') ],
     },
+    {
         label => "status_file - bare filename",
         args => [ status_file => 'foo.txt' ],
     },
