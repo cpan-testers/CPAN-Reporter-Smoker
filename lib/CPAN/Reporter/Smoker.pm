@@ -12,9 +12,10 @@ use CPAN::Tarzip;
 use CPAN::HandleConfig;
 use CPAN::Reporter::History;
 use Compress::Zlib;
-use File::Temp 0.20;
+use Fcntl ':flock';
+use File::Basename qw/basename dirname/;
 use File::Spec;
-use File::Basename qw/basename/;
+use File::Temp 0.20;
 use Probe::Perl;
 use Term::Title;
 
@@ -48,6 +49,10 @@ my %spec = (
     set_term_title => { 
         default => 1,       
         is_valid => sub { /^[01]$/ },
+    },
+    status_file => {
+        default => File::Spec->catfile( File::Spec->tmpdir, "smoker-status-$$.txt" ),
+        is_valid => sub { -d dirname( $_ ) },
     },
 );
  
@@ -127,7 +132,6 @@ sub start {
         for my $d ( 0 .. $#{$dists} ) {
             my $dist = CPAN::Shell->expandany($dists->[$d]);
             my $base = $dist->base_id;
-            local $ENV{PERL_CR_SMOKER_CURRENT} = $base;
             my $count = sprintf('%d/%d', $d+1, scalar @$dists);
             if ( $seen{$base}++ ) {
                 $CPAN::Frontend->mywarn( 
@@ -135,17 +139,29 @@ sub start {
                 next DIST;
             }
             else {
+                # record distribution being smoked
                 my $time = scalar localtime();
                 my $msg = "$base [$count] at $time";
                 if ( $args{set_term_title} ) {
                   Term::Title::set_titlebar( "Smoking $msg" );
                 }
                 $CPAN::Frontend->mywarn( "\nSmoker: testing $msg\n\n" );
+                local $ENV{PERL_CR_SMOKER_CURRENT} = $base;
+                open my $status_fh, ">", $args{status_file};
+                if ( $status_fh ) {
+                  flock $status_fh, LOCK_EX;
+                  print {$status_fh} $msg;
+                  flock $status_fh, LOCK_UN;
+                  close $status_fh;
+                }
+                # invoke CPAN.pm to test distribution 
                 system($perl, "-MCPAN", "-e", 
                   "local \$CPAN::Config->{test_report} = 1; " 
                   . $reset_string . "test( '$dists->[$d]' )"
                 );
                 _prompt_quit( $? & 127 ) if ( $? & 127 );
+                # cleanup and record keeping
+                unlink $args{status_file} if -f $args{status_file};
                 $dists_tested++;
             }
             if ( $dists_tested >= $args{clean_cache_after} ) {
@@ -473,6 +489,35 @@ CPAN.  These programs could do *anything* to your system, including deleting
 everything on it.  Do not run CPAN::Reporter::Smoker unless you are prepared to
 take these risks.  
 
+= USAGE
+
+== {start()}
+
+Starts smoke testing using defaults already in CPAN::Config and
+CPAN::Reporter's .cpanreporter directory.  Runs until all distributions are
+tested or the process is halted with CTRL-C or otherwise killed.
+
+{start()} supports several optional arguments:
+
+* {clean_cache_after} -- number of distributions that will be tested 
+before checking to see if the CPAN build cache needs to be cleaned up 
+(not including any prerequisites tested). Must be a positive integer.
+Defaults to 100
+* {restart_delay} -- number of seconds that must elapse before restarting 
+smoke testing. This will reload indices to search for new distributions
+and restart testing from the most recent distribution. Must be a positive
+integer; Defaults to 43200 seconds (12 hours)
+* {set_term_title} -- toggle for whether the terminal titlebar will be
+updated with the distribution being smoke tested and the starting time
+of the test. Helps determine if a test is hung and which distribution
+might be responsible.  Valid values are 0 or 1.  Defaults to 1
+* {status_file} -- during testing, the name of the distribution under test 
+and a timestamp are written to this file. The file is removed after the
+test is complete.  This helps identify a problem distribution if testing 
+hangs or crashes the computer. If the argument includes a path, all 
+directories to the file must exist. Defaults to {smoker-status-$$.txt} 
+in File::Spec->tmpdir.
+
 = HINTS
 
 == Selection of distributions to test
@@ -707,29 +752,6 @@ minimize some of the clutter to the screen as distributions are tested.
 On some systems (e.g. Win32), Test::Reporter may take a long time to determine
 the origin domain for mail.  Set the MAILDOMAIN environment variable instead to
 avoid this delay.
-
-= USAGE
-
-== {start()}
-
-Starts smoke testing using defaults already in CPAN::Config and
-CPAN::Reporter's .cpanreporter directory.  Runs until all distributions are
-tested or the process is halted with CTRL-C or otherwise killed.
-
-{start()} supports several optional arguments:
-
-* {clean_cache_after} -- number of distributions that will be tested 
-before checking to see if the CPAN build cache needs to be cleaned up 
-(not including any prerequisites tested); must be a positive integer;
-defaults to 100
-* {restart_delay} -- number of seconds that must elapse before restarting 
-smoke testing; this will reload indices to search for new distributions
-and restart testing from the most recent distribution; must be a positive
-integer; defaults to 43200 seconds (12 hours)
-* {set_term_title} -- toggle for whether the terminal titlebar will be
-updated with the distribution being smoke tested and the starting time
-of the test; helps determine if a test is hung and which distribution
-might be responsible; valid values are 0 or 1; defaults to 1
 
 = ENVIRONMENT
 

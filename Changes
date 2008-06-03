@@ -2,6 +2,10 @@ Revision history for Perl module CPAN::Reporter::Smoker
 
 0.12
 
+    - Added: 'status_file' argument used to record distribution being
+      tested into a file; helps in determining which distribution is at
+      fault if testing some distribution crashes or hangs the computer
+    
     - Added: shows count of distributions found when index is processed
       and number of the current distribution being tested
 

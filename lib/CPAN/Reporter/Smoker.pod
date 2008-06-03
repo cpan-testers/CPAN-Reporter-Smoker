@@ -73,6 +73,50 @@ CPAN.  These programs could do B<anything> to your system, including deleting
 everything on it.  Do not run CPAN::Reporter::Smoker unless you are prepared to
 take these risks.  
 
+=head1 USAGE
+
+=head2 C<<< start() >>>
+
+Starts smoke testing using defaults already in CPAN::Config and
+CPAN::Reporter's .cpanreporter directory.  Runs until all distributions are
+tested or the process is halted with CTRL-C or otherwise killed.
+
+C<<< start() >>> supports several optional arguments:
+
+=over
+
+=item *
+
+C<<< clean_cache_after >>> -- number of distributions that will be tested 
+before checking to see if the CPAN build cache needs to be cleaned up 
+(not including any prerequisites tested). Must be a positive integer.
+Defaults to 100
+
+=item *
+
+C<<< restart_delay >>> -- number of seconds that must elapse before restarting 
+smoke testing. This will reload indices to search for new distributions
+and restart testing from the most recent distribution. Must be a positive
+integer; Defaults to 43200 seconds (12 hours)
+
+=item *
+
+C<<< set_term_title >>> -- toggle for whether the terminal titlebar will be
+updated with the distribution being smoke tested and the starting time
+of the test. Helps determine if a test is hung and which distribution
+might be responsible.  Valid values are 0 or 1.  Defaults to 1
+
+=item *
+
+C<<< status_file >>> -- during testing, the name of the distribution under test 
+and a timestamp are written to this file. The file is removed after the
+test is complete.  This helps identify a problem distribution if testing 
+hangs or crashes the computer. If the argument includes a path, all 
+directories to the file must exist. Defaults to C<<< smoker-status-$$.txt >>> 
+in File::Spec-E<gt>tmpdir.
+
+=back
+
 =head1 HINTS
 
 =head2 Selection of distributions to test
@@ -307,41 +351,6 @@ minimize some of the clutter to the screen as distributions are tested.
 On some systems (e.g. Win32), Test::Reporter may take a long time to determine
 the origin domain for mail.  Set the MAILDOMAIN environment variable instead to
 avoid this delay.
-
-=head1 USAGE
-
-=head2 C<<< start() >>>
-
-Starts smoke testing using defaults already in CPAN::Config and
-CPAN::Reporter's .cpanreporter directory.  Runs until all distributions are
-tested or the process is halted with CTRL-C or otherwise killed.
-
-C<<< start() >>> supports several optional arguments:
-
-=over
-
-=item *
-
-C<<< clean_cache_after >>> -- number of distributions that will be tested 
-before checking to see if the CPAN build cache needs to be cleaned up 
-(not including any prerequisites tested); must be a positive integer;
-defaults to 100
-
-=item *
-
-C<<< restart_delay >>> -- number of seconds that must elapse before restarting 
-smoke testing; this will reload indices to search for new distributions
-and restart testing from the most recent distribution; must be a positive
-integer; defaults to 43200 seconds (12 hours)
-
-=item *
-
-C<<< set_term_title >>> -- toggle for whether the terminal titlebar will be
-updated with the distribution being smoke tested and the starting time
-of the test; helps determine if a test is hung and which distribution
-might be responsible; valid values are 0 or 1; defaults to 1
-
-=back
 
 =head1 ENVIRONMENT
 
