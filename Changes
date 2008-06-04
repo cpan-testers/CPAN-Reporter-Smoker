@@ -1,5 +1,9 @@
 Revision history for Perl module CPAN::Reporter::Smoker
 
+0.13
+
+    - Under development
+
 0.12 Tue Jun  3 11:52:49 EDT 2008
 
     - Added: 'status_file' argument used to record distribution being
