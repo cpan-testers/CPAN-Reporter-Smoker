@@ -10,7 +10,7 @@ TODO list for Perl module CPAN::Reporter::Smoker
 
 # High priority
 
-- add option to write dist being smoked to a file
+- refactor sub to call test to support PoCo::C::R
 
 # Medium priority
 
