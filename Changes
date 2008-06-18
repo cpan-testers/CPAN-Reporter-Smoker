@@ -1,5 +1,10 @@
 Revision history for Perl module CPAN::Reporter::Smoker
 
+0.14
+
+    - Fixed: localizing CPAN config was causing some segfaults on 5.6.2;
+      removed the call to local() as a workaround
+
 0.13 Tue Jun 10 22:38:15 EDT 2008
 
     - Fixed: under build_dir_reuse, be sure to regenerate build dirs before
