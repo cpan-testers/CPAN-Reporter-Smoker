@@ -14,6 +14,8 @@ TODO list for Perl module CPAN::Reporter::Smoker
 
 # Medium priority
 
+- try to make TTY sane (if possible) after each smoke run
+
 - if interrupted,  be more helpful
     - offer to send email to bug-Dist-Name@rt.cpan.org? (use Net::SMTP and
       CPAN::Reporter mail host?)
