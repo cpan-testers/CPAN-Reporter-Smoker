@@ -156,7 +156,7 @@ sub start {
                 }
                 # invoke CPAN.pm to test distribution 
                 system($perl, "-MCPAN", "-e", 
-                  "local \$CPAN::Config->{test_report} = 1; " 
+                  "\$CPAN::Config->{test_report} = 1; " 
                   . $reset_string . "test( '$dists->[$d]' )"
                 );
                 _prompt_quit( $? & 127 ) if ( $? & 127 );
