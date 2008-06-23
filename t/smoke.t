@@ -24,7 +24,7 @@ $ENV{PERL5LIB} = join( $Config{path_sep},
 # Force load early so the testing version will be found before CPAN.pm
 # adds $ENV{HOME}/.cpan to @INC so we don't load the user's config by mistake
 require CPAN::MyConfig;
-$ENV{PERL5OPT} = join( q{}, 
+$ENV{PERL5OPT} = join( q{ }, 
     "-I$test_lib -MCPAN::MyConfig", ( defined $ENV{PERL5OPT} ? $ENV{PERL5OPT} : () )
 );
 
