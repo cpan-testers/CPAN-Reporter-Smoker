@@ -1,5 +1,10 @@
 Revision history for Perl module CPAN::Reporter::Smoker
 
+0.16
+
+    - Changed: sets PERL_EXTUTILS_AUTOINSTALL=--defaultdeps environment
+      variable for automatic handling of Auto Install dependency
+
 0.15 Sun Jun 22 23:53:26 EDT 2008
 
     - Test fixed: smoke.t and smoke-restart.t no longer fail if PERL5OPT is

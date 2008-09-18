@@ -2,7 +2,7 @@ package CPAN::Reporter::Smoker;
 use 5.006;
 use strict;
 use warnings;
-our $VERSION = '0.15'; 
+our $VERSION = '0.16'; 
 $VERSION = eval $VERSION; ## no critic
 
 use Carp;
@@ -79,6 +79,7 @@ sub start {
 
     # Always accept default prompts
     local $ENV{PERL_MM_USE_DEFAULT} = 1;
+    local $ENV{PERL_EXTUTILS_AUTOINSTALL} = "--defaultdeps";
 
     # Load CPAN configuration
     my $init_cpan = 0;
@@ -761,6 +762,8 @@ while running:
 * {AUTOMATED_TESTING} -- signal that tests are being run by an automated
 smoke testing program (i.e. don't expect interactivity)
 * {PERL_MM_USE_DEFAULT} -- accept [ExtUtils::MakeMaker] prompt() defaults
+* {PERL_EXTUTILS_AUTOINSTALL} -- set to '--defaultdeps' for default 
+dependencies
 
 The following environment variables, if set, will modify the behavior of
 CPAN::Reporter::Smoker.  Generally, they are only required during the
