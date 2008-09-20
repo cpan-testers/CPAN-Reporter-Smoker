@@ -32,8 +32,9 @@ t/CPAN/update-checksums.pl
 t/DotDirs.pm
 t/lib/CPAN/MyConfig.pm
 t/lib/Test/Reporter.pm
+t/smoke-all.t
+t/smoke-list.t
 t/smoke-restart.t
-t/smoke.t
 Todo
 xt/critic.t
 xt/perlcriticrc
