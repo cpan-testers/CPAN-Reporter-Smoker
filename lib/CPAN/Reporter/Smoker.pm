@@ -2,7 +2,7 @@ package CPAN::Reporter::Smoker;
 use 5.006;
 use strict;
 use warnings;
-our $VERSION = '0.16'; 
+our $VERSION = '0.17'; 
 $VERSION = eval $VERSION; ## no critic
 
 use Carp;
