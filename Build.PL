@@ -29,6 +29,7 @@ $class->new(
         'File::Temp' => 0.20, 
         'Probe::Perl' => 0.01,
         'Term::Title' => 0.01,
+        'Test::Reporter' => 1.52,
     },
     build_requires => {
         'Cwd' => 3.27, 

@@ -16,6 +16,7 @@ WriteMakefile
                            'Fcntl' => 0,
                            'CPAN::Reporter::History' => '1.17',
                            'Probe::Perl' => '0.01',
+                           'Test::Reporter' => '1.52',
                            'File::Path' => 0,
                            'Module::Build' => '0.28',
                            'CPAN::HandleConfig' => 0,
