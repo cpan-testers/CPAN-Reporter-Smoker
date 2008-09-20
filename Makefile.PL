@@ -14,7 +14,7 @@ WriteMakefile
                            'IO::CaptureOutput' => '1.06',
                            'File::Spec' => '3.27',
                            'Fcntl' => 0,
-                           'CPAN::Reporter::History' => '1.11',
+                           'CPAN::Reporter::History' => '1.17',
                            'Probe::Perl' => '0.01',
                            'File::Path' => 0,
                            'Module::Build' => '0.28',

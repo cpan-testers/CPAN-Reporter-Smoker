@@ -8,7 +8,7 @@ CPAN::Reporter::Smoker - Turnkey CPAN Testers smoking
 
 =head1 VERSION
 
-This documentation describes version 0.15.
+This documentation describes version 0.16.
 
 =head1 SYNOPSIS
 
@@ -91,6 +91,12 @@ C<<< clean_cache_after >>> -- number of distributions that will be tested
 before checking to see if the CPAN build cache needs to be cleaned up 
 (not including any prerequisites tested). Must be a positive integer.
 Defaults to 100
+
+=item *
+
+C<<< list >>> -- if provided, this list of distributions will be tested instead
+of all of CPAN.  Must be a reference to an array of distribution names of
+the form 'AUTHORE<sol>Dist-Name-0.00.tar.gz'
 
 =item *
 
@@ -367,6 +373,11 @@ smoke testing program (i.e. don't expect interactivity)
 =item *
 
 C<<< PERL_MM_USE_DEFAULT >>> -- accept L<ExtUtils::MakeMaker> prompt() defaults
+
+=item *
+
+C<<< PERL_EXTUTILS_AUTOINSTALL >>> -- set to '--defaultdeps' for default 
+dependencies
 
 =back
 

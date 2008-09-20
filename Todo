@@ -10,17 +10,17 @@ TODO list for Perl module CPAN::Reporter::Smoker
 
 # High priority
 
+- "list => \@list" option
+
 - refactor sub to call test to support PoCo::C::R into CPAN::Reporter
 
 # Medium priority
 
+- "limit => $n" option
+
 - try to make TTY sane (if possible) after each smoke run
 
 - clear CPAN build cache on start?
-
-- "limit => $n" option
-
-- "list => \@list" option
 
 # Low/Maybe
 

@@ -2,7 +2,7 @@ NAME
     CPAN::Reporter::Smoker - Turnkey CPAN Testers smoking
 
 VERSION
-    This documentation describes version 0.15.
+    This documentation describes version 0.16.
 
 SYNOPSIS
          $ perl -MCPAN::Reporter::Smoker -e start
@@ -60,6 +60,10 @@ USAGE
         before checking to see if the CPAN build cache needs to be cleaned
         up (not including any prerequisites tested). Must be a positive
         integer. Defaults to 100
+
+    *   "list" -- if provided, this list of distributions will be tested
+        instead of all of CPAN. Must be a reference to an array of
+        distribution names of the form 'AUTHOR/Dist-Name-0.00.tar.gz'
 
     *   "restart_delay" -- number of seconds that must elapse before
         restarting smoke testing. This will reload indices to search for new
@@ -320,6 +324,9 @@ ENVIRONMENT
 
     *   "PERL_MM_USE_DEFAULT" -- accept ExtUtils::MakeMaker prompt()
         defaults
+
+    *   "PERL_EXTUTILS_AUTOINSTALL" -- set to '--defaultdeps' for default
+        dependencies
 
     The following environment variables, if set, will modify the behavior of
     CPAN::Reporter::Smoker. Generally, they are only required during the

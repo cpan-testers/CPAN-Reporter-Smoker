@@ -1,6 +1,9 @@
 Revision history for Perl module CPAN::Reporter::Smoker
 
-0.16
+0.16 Sat Sep 20 08:54:49 EDT 2008
+
+    - Added: 'list' argument to specify a particular list of distributions
+      to test instead of testing all of CPAN in reverse order
 
     - Changed: sets PERL_EXTUTILS_AUTOINSTALL=--defaultdeps environment
       variable for automatic handling of Auto Install dependency

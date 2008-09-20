@@ -38,152 +38,165 @@ my $tmp_dir = File::Temp::tempdir;
 # start -- start automated smoking
 #--------------------------------------------------------------------------#
 my %spec = (
-    clean_cache_after => { 
-        default => 100, 
-        is_valid => sub { /^\d+$/ },
-    },
-    restart_delay => { 
-        default => 12 * 3600, # 12 hours
-        is_valid => sub { /^\d+$/ },
-    },
-    set_term_title => { 
-        default => 1,       
-        is_valid => sub { /^[01]$/ },
-    },
-    status_file => {
-        default => File::Spec->catfile( File::Spec->tmpdir, "smoker-status-$$.txt" ),
-        is_valid => sub { -d dirname( $_ ) },
-    },
+  clean_cache_after => { 
+    default => 100, 
+    is_valid => sub { /^\d+$/ },
+  },
+  restart_delay => { 
+    default => 12 * 3600, # 12 hours
+    is_valid => sub { /^\d+$/ },
+  },
+  set_term_title => { 
+    default => 1,       
+    is_valid => sub { /^[01]$/ },
+  },
+  status_file => {
+    default => File::Spec->catfile( File::Spec->tmpdir, "smoker-status-$$.txt" ),
+    is_valid => sub { -d dirname( $_ ) },
+  },
+  list => {
+    default => undef,
+    is_valid => sub { !defined $_ || ref $_ eq 'ARRAY' }
+  },
 );
  
 sub start {
-    my %args = map { $_ => $spec{$_}{default} } keys %spec;
-    croak "Invalid arguments to start(): must be key/value pairs"
-        if @_ % 2;
-    while ( @_ ) {
-        my ($key, $value) = splice @_, 0, 2;
-        local $_ = $value; # alias for validator
-        croak "Invalid argument to start(): $key => $value"
-            unless $spec{$key} && $spec{$key}{is_valid}->($value);
-        $args{$key} = $value;
+  my %args = map { $_ => $spec{$_}{default} } keys %spec;
+  croak "Invalid arguments to start(): must be key/value pairs"
+  if @_ % 2;
+  while ( @_ ) {
+    my ($key, $value) = splice @_, 0, 2;
+    local $_ = $value; # alias for validator
+    croak "Invalid argument to start(): $key => $value"
+    unless $spec{$key} && $spec{$key}{is_valid}->($value);
+    $args{$key} = $value;
+  }
+
+  # Stop here if we're just testing
+  return 1 if $ENV{PERL_CR_SMOKER_SHORTCUT};
+
+  # Notify before CPAN messages start
+  $CPAN::Frontend->mywarn( "Starting CPAN::Reporter::Smoker\n" );
+
+  # Let things know we're running automated
+  local $ENV{AUTOMATED_TESTING} = 1;
+
+  # Always accept default prompts
+  local $ENV{PERL_MM_USE_DEFAULT} = 1;
+  local $ENV{PERL_EXTUTILS_AUTOINSTALL} = "--defaultdeps";
+
+  # Load CPAN configuration
+  my $init_cpan = 0;
+  unless ( $init_cpan++ ) {
+    CPAN::HandleConfig->load();
+    CPAN::Shell::setup_output;
+    CPAN::Index->reload;
+    $CPAN::META->checklock(); # needed for cache scanning
+  }
+
+  # Win32 SIGINT propogates all the way to us, so trap it before we smoke
+  # Must come *after* checklock() to override CPAN's $SIG{INT}
+  local $SIG{INT} = \&_prompt_quit;
+
+  # Master loop
+  # loop counter will increment with each restart - useful for testing
+  my $loop_counter = 0;
+
+  # global cache of distros smoked to speed skips on restart
+  my %seen = map { $_->{dist} => 1 } CPAN::Reporter::History::have_tested();
+
+  SCAN_LOOP:
+  while ( 1 ) {
+    $loop_counter++;
+    my $loop_start_time = time;
+    my $dists;
+
+    # Get the list of distributions to process
+    if ( $args{list} ) {
+      # Given a list
+      $dists = $args{list};
+    }
+    else {
+      # Or get list from CPAN
+      my $package = _get_module_index( 'modules/02packages.details.txt.gz' );
+      my $find_ls = _get_module_index( 'indices/find-ls.gz' );
+      CPAN::Index->reload;
+      $CPAN::Frontend->mywarn( "Smoker: scanning and sorting index\n");
+
+      $dists = _parse_module_index( $package, $find_ls );
+
+      $CPAN::Frontend->mywarn( "Smoker: found " . scalar @$dists . " distributions on CPAN\n");
     }
 
-    # Stop here if we're just testing
-    return 1 if $ENV{PERL_CR_SMOKER_SHORTCUT};
-
-    # Notify before CPAN messages start
-    $CPAN::Frontend->mywarn( "Starting CPAN::Reporter::Smoker\n" );
-
-    # Let things know we're running automated
-    local $ENV{AUTOMATED_TESTING} = 1;
-
-    # Always accept default prompts
-    local $ENV{PERL_MM_USE_DEFAULT} = 1;
-    local $ENV{PERL_EXTUTILS_AUTOINSTALL} = "--defaultdeps";
-
-    # Load CPAN configuration
-    my $init_cpan = 0;
-    unless ( $init_cpan++ ) {
-        CPAN::HandleConfig->load();
-        CPAN::Shell::setup_output;
-        CPAN::Index->reload;
-        $CPAN::META->checklock(); # needed for cache scanning
+    # Check if we need to manually reset test history during each dist loop 
+    my $reset_string = q{};
+    if ( $CPAN::Config->{build_dir_reuse} 
+      && $CPAN::META->can('reset_tested') )
+    {
+      $reset_string = 'CPAN::Index->reload; $CPAN::META->reset_tested; '
     }
 
-    # Win32 SIGINT propogates all the way to us, so trap it before we smoke
-    # Must come *after* checklock() to override CPAN's $SIG{INT}
-    local $SIG{INT} = \&_prompt_quit;
+    # Clean cache on start and count dists tested to trigger cache cleanup
+    _clean_cache();
+    my $dists_tested = 0;
 
-    # Master loop
-    # loop counter will increment with each restart - useful for testing
-    my $loop_counter = 0;
-
-    # global cache of distros smoked to speed skips on restart
-    my %seen = map { $_->{dist} => 1 } CPAN::Reporter::History::have_tested();
-
-    SCAN_LOOP:
-    while ( 1 ) {
-        $loop_counter++;
-        my $loop_start_time = time;
-
-        # Get the list of distributions to process
-        my $package = _get_module_index( 'modules/02packages.details.txt.gz' );
-        my $find_ls = _get_module_index( 'indices/find-ls.gz' );
-        CPAN::Index->reload;
-        $CPAN::Frontend->mywarn( "Smoker: scanning and sorting index\n");
-
-        my $dists = _parse_module_index( $package, $find_ls );
-
-        $CPAN::Frontend->mywarn( "Smoker: found " . scalar @$dists . " distributions on CPAN\n");
-
-        # Check if we need to manually reset test history during each dist loop 
-        my $reset_string = q{};
-        if ( $CPAN::Config->{build_dir_reuse} 
-          && $CPAN::META->can('reset_tested') )
-        {
-          $reset_string = 'CPAN::Index->reload; $CPAN::META->reset_tested; '
+    # Start smoking
+    DIST:
+    for my $d ( 0 .. $#{$dists} ) {
+      my $dist = CPAN::Shell->expandany($dists->[$d]);
+      my $base = $dist->base_id;
+      my $count = sprintf('%d/%d', $d+1, scalar @$dists);
+      if ( $seen{$base}++ ) {
+        $CPAN::Frontend->mywarn( 
+          "Smoker: already tested $base [$count]\n");
+        next DIST;
+      }
+      else {
+        # record distribution being smoked
+        my $time = scalar localtime();
+        my $msg = "$base [$count] at $time";
+        if ( $args{set_term_title} ) {
+          Term::Title::set_titlebar( "Smoking $msg" );
         }
-
-        # Clean cache on start and count dists tested to trigger cache cleanup
+        $CPAN::Frontend->mywarn( "\nSmoker: testing $msg\n\n" );
+        local $ENV{PERL_CR_SMOKER_CURRENT} = $base;
+        open my $status_fh, ">", $args{status_file};
+        if ( $status_fh ) {
+          flock $status_fh, LOCK_EX;
+          print {$status_fh} $msg;
+          flock $status_fh, LOCK_UN;
+          close $status_fh;
+        }
+        # invoke CPAN.pm to test distribution 
+        system($perl, "-MCPAN", "-e", 
+          "\$CPAN::Config->{test_report} = 1; " 
+          . $reset_string . "test( '$dists->[$d]' )"
+        );
+        _prompt_quit( $? & 127 ) if ( $? & 127 );
+        # cleanup and record keeping
+        unlink $args{status_file} if -f $args{status_file};
+        $dists_tested++;
+      }
+      if ( $dists_tested >= $args{clean_cache_after} ) {
         _clean_cache();
-        my $dists_tested = 0;
-
-        # Start smoking
-        DIST:
-        for my $d ( 0 .. $#{$dists} ) {
-            my $dist = CPAN::Shell->expandany($dists->[$d]);
-            my $base = $dist->base_id;
-            my $count = sprintf('%d/%d', $d+1, scalar @$dists);
-            if ( $seen{$base}++ ) {
-                $CPAN::Frontend->mywarn( 
-                    "Smoker: already tested $base [$count]\n");
-                next DIST;
-            }
-            else {
-                # record distribution being smoked
-                my $time = scalar localtime();
-                my $msg = "$base [$count] at $time";
-                if ( $args{set_term_title} ) {
-                  Term::Title::set_titlebar( "Smoking $msg" );
-                }
-                $CPAN::Frontend->mywarn( "\nSmoker: testing $msg\n\n" );
-                local $ENV{PERL_CR_SMOKER_CURRENT} = $base;
-                open my $status_fh, ">", $args{status_file};
-                if ( $status_fh ) {
-                  flock $status_fh, LOCK_EX;
-                  print {$status_fh} $msg;
-                  flock $status_fh, LOCK_UN;
-                  close $status_fh;
-                }
-                # invoke CPAN.pm to test distribution 
-                system($perl, "-MCPAN", "-e", 
-                  "\$CPAN::Config->{test_report} = 1; " 
-                  . $reset_string . "test( '$dists->[$d]' )"
-                );
-                _prompt_quit( $? & 127 ) if ( $? & 127 );
-                # cleanup and record keeping
-                unlink $args{status_file} if -f $args{status_file};
-                $dists_tested++;
-            }
-            if ( $dists_tested >= $args{clean_cache_after} ) {
-              _clean_cache();
-              $dists_tested = 0;
-            }
-            next SCAN_LOOP if time - $loop_start_time > $args{restart_delay};
-        }
-        last SCAN_LOOP if $ENV{PERL_CR_SMOKER_RUNONCE};
-        # if here, we are out of distributions to test, so sleep
-        my $delay = int( $args{restart_delay} - ( time - $loop_start_time ));
-        if ( $delay > 0 ) {
-          $CPAN::Frontend->mywarn( 
-            "\nSmoker: Finished all available dists. Sleeping for $delay seconds.\n\n" 
-          );
-          sleep $delay ;
-        }
+        $dists_tested = 0;
+      }
+      next SCAN_LOOP if time - $loop_start_time > $args{restart_delay};
     }
+    last SCAN_LOOP if $ENV{PERL_CR_SMOKER_RUNONCE};
+    last SCAN_LOOP if $args{list};
+    # if here, we are out of distributions to test, so sleep
+    my $delay = int( $args{restart_delay} - ( time - $loop_start_time ));
+    if ( $delay > 0 ) {
+      $CPAN::Frontend->mywarn( 
+        "\nSmoker: Finished all available dists. Sleeping for $delay seconds.\n\n" 
+      );
+      sleep $delay ;
+    }
+  }
 
-    CPAN::cleanup();
-    return $loop_counter;
+  CPAN::cleanup();
+  return $loop_counter;
 }
 
 #--------------------------------------------------------------------------#
@@ -504,6 +517,9 @@ tested or the process is halted with CTRL-C or otherwise killed.
 before checking to see if the CPAN build cache needs to be cleaned up 
 (not including any prerequisites tested). Must be a positive integer.
 Defaults to 100
+* {list} -- if provided, this list of distributions will be tested instead
+of all of CPAN.  Must be a reference to an array of distribution names of
+the form 'AUTHOR/Dist-Name-0.00.tar.gz'
 * {restart_delay} -- number of seconds that must elapse before restarting 
 smoke testing. This will reload indices to search for new distributions
 and restart testing from the most recent distribution. Must be a positive
