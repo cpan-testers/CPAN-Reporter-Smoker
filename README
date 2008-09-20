@@ -62,8 +62,10 @@ USAGE
         integer. Defaults to 100
 
     *   "list" -- if provided, this list of distributions will be tested
-        instead of all of CPAN. Must be a reference to an array of
-        distribution names of the form 'AUTHOR/Dist-Name-0.00.tar.gz'
+        instead of all of CPAN. May be a reference to an array of
+        distribution names or may be a filename containing one distribution
+        name per line. Distribution names must be of the form
+        'AUTHOR/Dist-Name-0.00.tar.gz'
 
     *   "restart_delay" -- number of seconds that must elapse before
         restarting smoke testing. This will reload indices to search for new

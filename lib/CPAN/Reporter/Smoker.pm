@@ -56,7 +56,7 @@ my %spec = (
   },
   list => {
     default => undef,
-    is_valid => sub { !defined $_ || ref $_ eq 'ARRAY' }
+    is_valid => sub { !defined $_ || ref $_ eq 'ARRAY' || -r $_ }
   },
 );
  
@@ -114,7 +114,15 @@ sub start {
     # Get the list of distributions to process
     if ( $args{list} ) {
       # Given a list
-      $dists = $args{list};
+      if ( ref $args{list} eq 'ARRAY' ) {
+        $dists = $args{list};
+      }
+      # Given a file
+      else {
+        open( my $list_fh, "<", $args{list} ) or die $!;
+        my @list = map { chomp; $_ } grep { /\S/ } <$list_fh>;
+        $dists = \@list;
+      }
     }
     else {
       # Or get list from CPAN
@@ -518,8 +526,9 @@ before checking to see if the CPAN build cache needs to be cleaned up
 (not including any prerequisites tested). Must be a positive integer.
 Defaults to 100
 * {list} -- if provided, this list of distributions will be tested instead
-of all of CPAN.  Must be a reference to an array of distribution names of
-the form 'AUTHOR/Dist-Name-0.00.tar.gz'
+of all of CPAN.  May be a reference to an array of distribution names or may 
+be a filename containing one distribution name per line.  Distribution names
+must be of the form 'AUTHOR/Dist-Name-0.00.tar.gz'  
 * {restart_delay} -- number of seconds that must elapse before restarting 
 smoke testing. This will reload indices to search for new distributions
 and restart testing from the most recent distribution. Must be a positive

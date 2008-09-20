@@ -95,8 +95,9 @@ Defaults to 100
 =item *
 
 C<<< list >>> -- if provided, this list of distributions will be tested instead
-of all of CPAN.  Must be a reference to an array of distribution names of
-the form 'AUTHORE<sol>Dist-Name-0.00.tar.gz'
+of all of CPAN.  May be a reference to an array of distribution names or may 
+be a filename containing one distribution name per line.  Distribution names
+must be of the form 'AUTHORE<sol>Dist-Name-0.00.tar.gz'  
 
 =item *
 

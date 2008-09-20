@@ -1,5 +1,9 @@
 Revision history for Perl module CPAN::Reporter::Smoker
 
+0.17 Sat Sep 20 10:11:00 EDT 2008
+
+    - Added: 'list' argument may also be a filename
+    
 0.16 Sat Sep 20 08:54:49 EDT 2008
 
     - Added: 'list' argument to specify a particular list of distributions
