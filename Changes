@@ -1,5 +1,12 @@
 Revision history for Perl module CPAN::Reporter::Smoker
 
+0.18
+
+    - Changed: bumped CPAN, CPAN::Reporter, Module::Build and 
+      ExtUtils::MakeMaker prereqs to latest versions
+
+    - Fixed: don't treat .ppm.zip files in CPAN mirror as distributions
+
 0.17 Sat Sep 20 10:11:00 EDT 2008
 
     - Added: 'list' argument may also be a filename

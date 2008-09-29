@@ -2,7 +2,7 @@ package CPAN::Reporter::Smoker;
 use 5.006;
 use strict;
 use warnings;
-our $VERSION = '0.17'; 
+our $VERSION = '0.18'; 
 $VERSION = eval $VERSION; ## no critic
 
 use Carp;
@@ -290,7 +290,7 @@ my %re = (
 		| /perl-?5\.004 
 		| /perl_mlb\.zip 
     )}xi,
-    archive => qr{\.(?:tar\.(?:bz2|gz|Z)|t(?:gz|bz)|zip|pm.gz)$}i,
+    archive => qr{\.(?:tar\.(?:bz2|gz|Z)|t(?:gz|bz)|(?<!ppm\.)zip|pm.gz)$}i,
     target_dir => qr{
         ^(?:
             modules/by-module/[^/]+/./../ | 

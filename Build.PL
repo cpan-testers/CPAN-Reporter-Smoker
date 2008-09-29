@@ -13,14 +13,14 @@ $class->new(
     requires => {
         'perl' => 5.006,
         # require sane tools
-        'ExtUtils::MakeMaker' => 6.36,
-        'Module::Build' => 0.28,
+        'ExtUtils::MakeMaker' => 6.46,
+        'Module::Build' => 0.30,
         # actual requires
         'Carp' => 0,
         'Compress::Zlib' => 1.2, 
-        'CPAN' => 1.92, 
+        'CPAN' => 1.93, 
         'CPAN::HandleConfig' => 0,
-        'CPAN::Reporter::History' => 1.17,
+        'CPAN::Reporter::History' => 1.1702,
         'CPAN::Tarzip' => 0,
         'Exporter' => 0,
         'Fcntl' => 0,
