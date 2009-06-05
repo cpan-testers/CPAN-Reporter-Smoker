@@ -2,7 +2,7 @@ package CPAN::Reporter::Smoker;
 use 5.006;
 use strict;
 use warnings;
-our $VERSION = '0.18'; 
+our $VERSION = '0.19'; 
 $VERSION = eval $VERSION; ## no critic
 
 use Carp;
@@ -58,6 +58,10 @@ my %spec = (
     default => undef,
     is_valid => sub { !defined $_ || ref $_ eq 'ARRAY' || -r $_ }
   },
+  install => {
+    default  => 0,
+    is_valid => sub { /^[01]$/ },
+  }, 
 );
  
 sub start {
@@ -178,7 +182,8 @@ sub start {
         # invoke CPAN.pm to test distribution 
         system($perl, "-MCPAN", "-e", 
           "\$CPAN::Config->{test_report} = 1; " 
-          . $reset_string . "test( '$dists->[$d]' )"
+          . $reset_string . ($args{'install'} ? 'install' : 'test')
+          . "( '$dists->[$d]' )"
         );
         _prompt_quit( $? & 127 ) if ( $? & 127 );
         # cleanup and record keeping
@@ -543,6 +548,10 @@ test is complete.  This helps identify a problem distribution if testing
 hangs or crashes the computer. If the argument includes a path, all 
 directories to the file must exist. Defaults to {smoker-status-$$.txt} 
 in File::Spec->tmpdir.
+* {install} -- toggle for whether the distribution should be installed
+after successful testing. Can be useful to avoid prerequisite re-building
+and growing PERL5LIB for the cost of disk space used for installed
+modules. Valid values are 0 or 1. Defaults to 0
 
 = HINTS
 

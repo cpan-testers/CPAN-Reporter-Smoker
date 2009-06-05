@@ -1,12 +1,12 @@
 ---
 name: CPAN-Reporter-Smoker
-version: 0.18
+version: 0.19
 author:
   - 'David A. Golden <dagolden@cpan.org>'
 abstract: Turnkey CPAN Testers smoking
 license: apache
 resources:
-  license: http://apache.org/licenses/LICENSE-2.0
+  license: http://www.apache.org/licenses/LICENSE-2.0.txt
   repository: http://dagolden.googlecode.com/svn/
 requires:
   CPAN: 1.93
@@ -35,11 +35,11 @@ build_requires:
 provides:
   CPAN::Reporter::Smoker:
     file: lib/CPAN/Reporter/Smoker.pm
-    version: 0.18
-generated_by: Module::Build version 0.3
+    version: 0.19
+generated_by: Module::Build version 0.33
 meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.2.html
-  version: 1.2
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
 no_index:
   directory:
     - examples

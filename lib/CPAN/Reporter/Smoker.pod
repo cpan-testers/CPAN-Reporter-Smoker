@@ -8,7 +8,7 @@ CPAN::Reporter::Smoker - Turnkey CPAN Testers smoking
 
 =head1 VERSION
 
-This documentation describes version 0.18.
+This documentation describes version 0.19.
 
 =head1 SYNOPSIS
 
@@ -121,6 +121,13 @@ test is complete.  This helps identify a problem distribution if testing
 hangs or crashes the computer. If the argument includes a path, all 
 directories to the file must exist. Defaults to C<<< smoker-status-$$.txt >>> 
 in File::Spec-E<gt>tmpdir.
+
+=item *
+
+C<<< install >>> -- toggle for whether the distribution should be installed
+after successful testing. Can be useful to avoid prerequisite re-building
+and growing PERL5LIB for the cost of disk space used for installed
+modules. Valid values are 0 or 1. Defaults to 0
 
 =back
 
