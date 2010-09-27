@@ -2,11 +2,13 @@
 use Cwd;
 my $cwd = cwd;
 my $Iswin = $^O eq "MSWin32";
+my $is_disable_test = $ENV{IS_DISABLE_TEST};
 $CPAN::Config = {
                  $Iswin ? () : (
                                 'make_install_make_command' => q[make],
                                 'mbuild_install_build_command' => q[./Build],
                                ),
+                 $is_disable_test ? ( 'prefs_dir' => qq[$cwd/t/data] ) : (),
                  'auto_commit' => 0,
                  'build_cache' => q[100],
                  'build_dir' => qq[$cwd/t/dot-cpan/build],

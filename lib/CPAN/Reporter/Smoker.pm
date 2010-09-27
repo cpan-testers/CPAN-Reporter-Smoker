@@ -163,6 +163,11 @@ sub start {
           "Smoker: already tested $base [$count]\n");
         next DIST;
       }
+      elsif ( CPAN::Distribution->new(%{$dist})->prefs->{disabled} ) {
+        $CPAN::Frontend->mywarn(
+          "Smoker: dist disabled $base [$count]\n");
+        next DIST;
+      }
       else {
         # record distribution being smoked
         my $time = scalar localtime();

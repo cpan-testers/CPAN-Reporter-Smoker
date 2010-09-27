@@ -21,6 +21,8 @@ $ENV{PERL5LIB} = join( $Config{path_sep},
     $test_lib, ( defined $ENV{PERL5LIB} ? $ENV{PERL5LIB} : () )
 );
 
+$ENV{IS_DISABLE_TEST} = 1;
+
 # Force load early so the testing version will be found before CPAN.pm
 # adds $ENV{HOME}/.cpan to @INC so we don't load the user's config by mistake
 require CPAN::MyConfig;
@@ -57,4 +59,4 @@ else {
 
 require_ok( 'CPAN::Reporter::History' );
 my @results = CPAN::Reporter::History::have_tested();
-is( scalar @results, 6, "Number of reports in history" );
+is( scalar @results, 1, "Number of reports in history" );
