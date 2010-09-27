@@ -2,12 +2,12 @@ package CPAN::Reporter::Smoker;
 use 5.006;
 use strict;
 use warnings;
-our $VERSION = '0.19'; 
+our $VERSION = '0.19';
 $VERSION = eval $VERSION; ## no critic
 
 use Carp;
 use Config;
-use CPAN; 
+use CPAN;
 use CPAN::Tarzip;
 use CPAN::HandleConfig;
 use CPAN::Reporter::History;
@@ -28,7 +28,7 @@ our @EXPORT = qw/ start /; ## no critic Export
 #--------------------------------------------------------------------------#
 
 my $perl = Probe::Perl->find_perl_interpreter;
-#my $tmp_dir = File::Temp->newdir( 'CPAN-Reporter-Smoker-XXXXXXX', 
+#my $tmp_dir = File::Temp->newdir( 'CPAN-Reporter-Smoker-XXXXXXX',
 #    DIR => File::Spec->tmpdir,
 #    UNLINK => 0,
 #);
@@ -38,16 +38,16 @@ my $tmp_dir = File::Temp::tempdir;
 # start -- start automated smoking
 #--------------------------------------------------------------------------#
 my %spec = (
-  clean_cache_after => { 
-    default => 100, 
+  clean_cache_after => {
+    default => 100,
     is_valid => sub { /^\d+$/ },
   },
-  restart_delay => { 
+  restart_delay => {
     default => 12 * 3600, # 12 hours
     is_valid => sub { /^\d+$/ },
   },
-  set_term_title => { 
-    default => 1,       
+  set_term_title => {
+    default => 1,
     is_valid => sub { /^[01]$/ },
   },
   status_file => {
@@ -61,9 +61,9 @@ my %spec = (
   install => {
     default  => 0,
     is_valid => sub { /^[01]$/ },
-  }, 
+  },
 );
- 
+
 sub start {
   my %args = map { $_ => $spec{$_}{default} } keys %spec;
   croak "Invalid arguments to start(): must be key/value pairs"
@@ -140,9 +140,9 @@ sub start {
       $CPAN::Frontend->mywarn( "Smoker: found " . scalar @$dists . " distributions on CPAN\n");
     }
 
-    # Check if we need to manually reset test history during each dist loop 
+    # Check if we need to manually reset test history during each dist loop
     my $reset_string = q{};
-    if ( $CPAN::Config->{build_dir_reuse} 
+    if ( $CPAN::Config->{build_dir_reuse}
       && $CPAN::META->can('reset_tested') )
     {
       $reset_string = 'CPAN::Index->reload; $CPAN::META->reset_tested; '
@@ -159,7 +159,7 @@ sub start {
       my $base = $dist->base_id;
       my $count = sprintf('%d/%d', $d+1, scalar @$dists);
       if ( $seen{$base}++ ) {
-        $CPAN::Frontend->mywarn( 
+        $CPAN::Frontend->mywarn(
           "Smoker: already tested $base [$count]\n");
         next DIST;
       }
@@ -179,9 +179,9 @@ sub start {
           flock $status_fh, LOCK_UN;
           close $status_fh;
         }
-        # invoke CPAN.pm to test distribution 
-        system($perl, "-MCPAN", "-e", 
-          "\$CPAN::Config->{test_report} = 1; " 
+        # invoke CPAN.pm to test distribution
+        system($perl, "-MCPAN", "-e",
+          "\$CPAN::Config->{test_report} = 1; "
           . $reset_string . ($args{'install'} ? 'install' : 'test')
           . "( '$dists->[$d]' )"
         );
@@ -201,8 +201,8 @@ sub start {
     # if here, we are out of distributions to test, so sleep
     my $delay = int( $args{restart_delay} - ( time - $loop_start_time ));
     if ( $delay > 0 ) {
-      $CPAN::Frontend->mywarn( 
-        "\nSmoker: Finished all available dists. Sleeping for $delay seconds.\n\n" 
+      $CPAN::Frontend->mywarn(
+        "\nSmoker: Finished all available dists. Sleeping for $delay seconds.\n\n"
       );
       sleep $delay ;
     }
@@ -225,7 +225,7 @@ sub _clean_cache {
     $CPAN::META->{cachemgr} = CPAN::CacheMgr->new(); # also scans cache
   }
 }
-        
+
 sub _prompt_quit {
     my ($sig) = @_;
     # convert numeric to name
@@ -233,8 +233,8 @@ sub _prompt_quit {
         my @signals = split q{ }, $Config{sig_name};
         $sig = $signals[$sig] || '???';
     }
-    $CPAN::Frontend->myprint( 
-        "\nStopped during $ENV{PERL_CR_SMOKER_CURRENT}.\n" 
+    $CPAN::Frontend->myprint(
+        "\nStopped during $ENV{PERL_CR_SMOKER_CURRENT}.\n"
     ) if defined $ENV{PERL_CR_SMOKER_CURRENT};
     $CPAN::Frontend->myprint(
         "\nCPAN testing halted on SIG$sig.  Continue (y/n)? [n]\n"
@@ -253,7 +253,7 @@ sub _prompt_quit {
 sub _get_module_index {
     my ($remote_file) = @_;
 
-    $CPAN::Frontend->mywarn( 
+    $CPAN::Frontend->mywarn(
         "Smoker: getting $remote_file from CPAN\n");
     # CPAN.pm may not use aslocal if it's a file:// mirror
     my $aslocal_file = File::Spec->catfile( $tmp_dir, basename( $remote_file ));
@@ -265,7 +265,7 @@ sub _get_module_index {
 }
 
 my $module_index_re = qr{
-    ^\s href="\.\./authors/id/./../    # skip prelude 
+    ^\s href="\.\./authors/id/./../    # skip prelude
     ([^"]+)                     # capture to next dquote mark
     .+? </a>                    # skip to end of hyperlink
     \s+                         # skip spaces
@@ -273,12 +273,12 @@ my $module_index_re = qr{
     \s+                         # skip spaces
     (\S+)                       # capture day
     \s+                         # skip spaces
-    (\S+)                       # capture month 
+    (\S+)                       # capture month
     \s+                         # skip spaces
     (\S+)                       # capture year
-}xms; 
+}xms;
 
-my %months = ( 
+my %months = (
     Jan => '01', Feb => '02', Mar => '03', Apr => '04', May => '05',
     Jun => '06', Jul => '07', Aug => '08', Sep => '09', Oct => '10',
     Nov => '11', Dec => '12'
@@ -290,19 +290,19 @@ my %re = (
     bundle => qr{^Bundle::},
     mod_perl => qr{/mod_perl},
     perls => qr{(?:
-		  /(?:emb|syb|bio)?perl-\d 
-		| /(?:parrot|ponie|kurila|Perl6-Pugs)-\d 
-		| /perl-?5\.004 
-		| /perl_mlb\.zip 
+          /(?:emb|syb|bio)?perl-\d
+        | /(?:parrot|ponie|kurila|Perl6-Pugs)-\d
+        | /perl-?5\.004
+        | /perl_mlb\.zip
     )}xi,
     archive => qr{\.(?:tar\.(?:bz2|gz|Z)|t(?:gz|bz)|(?<!ppm\.)zip|pm.gz)$}i,
     target_dir => qr{
         ^(?:
-            modules/by-module/[^/]+/./../ | 
-            modules/by-module/[^/]+/ | 
-            modules/by-category/[^/]+/[^/]+/./../ | 
-            modules/by-category/[^/]+/[^/]+/ | 
-            authors/id/./../ 
+            modules/by-module/[^/]+/./../ |
+            modules/by-module/[^/]+/ |
+            modules/by-category/[^/]+/[^/]+/./../ |
+            modules/by-category/[^/]+/[^/]+/ |
+            authors/id/./../
         )
     }x,
     leading_initials => qr{(.)/\1./},
@@ -318,7 +318,7 @@ $re{split_them} = qr{^(.+?)$re{version_suffix}$};
 # and not other "AUTHOR/subdir/whatever"
 
 # Just get AUTHOR/tarball.suffix from whatever file name is passed in
-sub _get_base_id { 
+sub _get_base_id {
     my $file = shift;
     my $base_id = $file;
     $base_id =~ s{$re{target_dir}}{};
@@ -341,7 +341,7 @@ sub _base_name {
 sub _parse_module_index {
     my ( $packages, $file_ls ) = @_;
 
-	# first walk the packages list
+    # first walk the packages list
     # and build an index
 
     my (%valid_bases, %valid_distros, %mirror);
@@ -358,7 +358,7 @@ sub _parse_module_index {
         }
 
         my ($module, $version, $path) = split;
-        
+
         my $base_id = _get_base_id("authors/id/$path");
 
         # skip all perl-like distros
@@ -366,7 +366,7 @@ sub _parse_module_index {
 
         # skip mod_perl environment
         next if $base_id =~ $re{mod_perl};
-        
+
         # skip all bundles
         next if $module =~ $re{bundle};
 
@@ -388,7 +388,7 @@ sub _parse_module_index {
         my %stat;
         @stat{qw/inode blocks perms links owner group size datetime name linkname/}
             = split q{ }, $line;
-        
+
         unless ($stat{name} && $stat{perms} && $stat{datetime}) {
             next;
         }
@@ -397,11 +397,11 @@ sub _parse_module_index {
         next unless $stat{name} =~ $re{target_dir};
         next unless $stat{name} =~ $re{archive};
 
-        # skip if not AUTHOR/tarball 
+        # skip if not AUTHOR/tarball
         # skip perls
         my $base_id = _get_base_id($stat{name});
-        next unless $base_id; 
-        
+        next unless $base_id;
+
         next if $base_id =~ $re{perls};
 
         my $base_name = _base_name( $base_id );
@@ -413,13 +413,13 @@ sub _parse_module_index {
             $mirror{$base_id} = $stat{datetime};
             next unless $base_name;
             if ( $stat{datetime} > $latest{$base_name}{datetime} ) {
-                $latest{$base_name} = { 
-                    datetime => $stat{datetime}, 
+                $latest{$base_name} = {
+                    datetime => $stat{datetime},
                     base_id => $base_id
                 };
             }
         }
-        # if not in the packages file, we only want it if it resembles 
+        # if not in the packages file, we only want it if it resembles
         # something in the package file and we only the most recent one
         else {
             # skip if couldn't parse out the name without version number
@@ -431,8 +431,8 @@ sub _parse_module_index {
             # keep only the latest
             $latest_dev{$base_name} ||= { datetime => 0 };
             if ( $stat{datetime} > $latest_dev{$base_name}{datetime} ) {
-                $latest_dev{$base_name} = { 
-                    datetime => $stat{datetime}, 
+                $latest_dev{$base_name} = {
+                    datetime => $stat{datetime},
                     base_id => $base_id
                 };
             }
@@ -444,7 +444,7 @@ sub _parse_module_index {
         my $base_id = $latest{$name}{base_id};
         $mirror{$base_id} = $latest{$name}{datetime} unless $mirror{$base_id};
     }
-          
+
     # for dev versions, it must be newer than the latest version of
     # the same base name from the packages file
 
@@ -453,7 +453,7 @@ sub _parse_module_index {
             next;
         }
         next if $latest{$name}{datetime} > $latest_dev{$name}{datetime};
-        $mirror{ $latest_dev{$name}{base_id} } = $latest_dev{$name}{datetime} 
+        $mirror{ $latest_dev{$name}{base_id} } = $latest_dev{$name}{datetime}
     }
 
     return [ sort { $mirror{$b} <=> $mirror{$a} } keys %mirror ];
@@ -464,7 +464,7 @@ sub _parse_module_index {
 __END__
 
 #--------------------------------------------------------------------------#
-# pod documentation 
+# pod documentation
 #--------------------------------------------------------------------------#
 
 =begin wikidoc
@@ -491,7 +491,7 @@ instead it uses configuration settings from CPAN.pm and CPAN::Reporter.
 
 Once started, it retrieves a list of distributions from the configured CPAN
 mirror and begins testing them in reverse order of upload.  It will skip any
-distribution which has already had a report sent by CPAN::Reporter.  
+distribution which has already had a report sent by CPAN::Reporter.
 
 Features (or bugs, depending on your point of view):
 
@@ -504,9 +504,9 @@ otherwise specified
 
 Current limitations:
 
-* Does not check any skip files before handing off to CPAN to test -- use 
+* Does not check any skip files before handing off to CPAN to test -- use
 CPAN.pm "distroprefs" instead
-* Does not attempt to retest distributions that had reports discarded because 
+* Does not attempt to retest distributions that had reports discarded because
 of prerequisites that could not be satisfied
 
 == WARNING -- smoke testing is risky
@@ -514,7 +514,7 @@ of prerequisites that could not be satisfied
 Smoke testing will download and run programs that other people have uploaded to
 CPAN.  These programs could do *anything* to your system, including deleting
 everything on it.  Do not run CPAN::Reporter::Smoker unless you are prepared to
-take these risks.  
+take these risks.
 
 = USAGE
 
@@ -526,15 +526,15 @@ tested or the process is halted with CTRL-C or otherwise killed.
 
 {start()} supports several optional arguments:
 
-* {clean_cache_after} -- number of distributions that will be tested 
-before checking to see if the CPAN build cache needs to be cleaned up 
+* {clean_cache_after} -- number of distributions that will be tested
+before checking to see if the CPAN build cache needs to be cleaned up
 (not including any prerequisites tested). Must be a positive integer.
 Defaults to 100
 * {list} -- if provided, this list of distributions will be tested instead
-of all of CPAN.  May be a reference to an array of distribution names or may 
+of all of CPAN.  May be a reference to an array of distribution names or may
 be a filename containing one distribution name per line.  Distribution names
-must be of the form 'AUTHOR/Dist-Name-0.00.tar.gz'  
-* {restart_delay} -- number of seconds that must elapse before restarting 
+must be of the form 'AUTHOR/Dist-Name-0.00.tar.gz'
+* {restart_delay} -- number of seconds that must elapse before restarting
 smoke testing. This will reload indices to search for new distributions
 and restart testing from the most recent distribution. Must be a positive
 integer; Defaults to 43200 seconds (12 hours)
@@ -542,11 +542,11 @@ integer; Defaults to 43200 seconds (12 hours)
 updated with the distribution being smoke tested and the starting time
 of the test. Helps determine if a test is hung and which distribution
 might be responsible.  Valid values are 0 or 1.  Defaults to 1
-* {status_file} -- during testing, the name of the distribution under test 
+* {status_file} -- during testing, the name of the distribution under test
 and a timestamp are written to this file. The file is removed after the
-test is complete.  This helps identify a problem distribution if testing 
-hangs or crashes the computer. If the argument includes a path, all 
-directories to the file must exist. Defaults to {smoker-status-$$.txt} 
+test is complete.  This helps identify a problem distribution if testing
+hangs or crashes the computer. If the argument includes a path, all
+directories to the file must exist. Defaults to {smoker-status-$$.txt}
 in File::Spec->tmpdir.
 * {install} -- toggle for whether the distribution should be installed
 after successful testing. Can be useful to avoid prerequisite re-building
@@ -559,7 +559,7 @@ modules. Valid values are 0 or 1. Defaults to 0
 
 Only the most recently uploaded developer and normal releases will be
 tested, and only if the developer release is newer than the regular release
-indexed by PAUSE.  
+indexed by PAUSE.
 
 For example, if Foo-Bar-0.01, Foo-Bar-0.02, Foo-Bar-0.03_01 and Foo-Bar-0.03_02
 are on CPAN, only Foo-Bar-0.02 and Foo-Bar-0.03_02 will be tested, and in
@@ -570,7 +570,7 @@ To avoid testing script or other tarballs, developer distributions included
 must have a base distribution name that resembles a distribution tarball
 already indexed by PAUSE.  If the first upload of distribution to PAUSE is a
 developer release -- Baz-Bam-0.00_01.tar.gz -- it will not be tested as there
-is no indexed Baz-Bam appearing in CPAN's 02packages.details.txt file.  
+is no indexed Baz-Bam appearing in CPAN's 02packages.details.txt file.
 
 Unauthorized tarballs are treated like developer releases and will be tested
 if they resemble an indexed distribution and are newer than the indexed
@@ -578,12 +578,12 @@ tarball.
 
 Perl, parrot, kurila, Pugs and similar distributions will not be tested.  The
 skip list is based on CPAN::Mini and matches as follows:
-    
+
     qr{(?:
-		  /(?:emb|syb|bio)?perl-\d 
-		| /(?:parrot|ponie|kurila|Perl6-Pugs)-\d 
-		| /perl-?5\.004 
-		| /perl_mlb\.zip 
+          /(?:emb|syb|bio)?perl-\d
+        | /(?:parrot|ponie|kurila|Perl6-Pugs)-\d
+        | /perl-?5\.004
+        | /perl_mlb\.zip
     )}xi,
 
 Bundles and mod_perl distributions will also not be tested, though mod_perl is
@@ -594,7 +594,7 @@ for how to tell CPAN.pm not to test certain dependencies.
 
 If certain distributions hang, crash or otherwise cause trouble, you can use
 CPAN's "distroprefs" system to disable them.  If a distribution is disabled, it
-won't be built or tested.  If a distribution's dependency is disabled, a 
+won't be built or tested.  If a distribution's dependency is disabled, a
 failing test is just discarded.
 
 The first step is configuring a directory for distroprefs files:
@@ -603,7 +603,7 @@ The first step is configuring a directory for distroprefs files:
     cpan> o conf init prefs_dir
     cpan> o conf commit
 
-Next, ensure that either the [YAML] or [YAML::Syck] module is installed.  
+Next, ensure that either the [YAML] or [YAML::Syck] module is installed.
 (YAML::Syck is faster).  Then create a file in the {prefs_dir} directory
 to hold the list of distributions to disable, e.g. call it {disabled.yml}
 
@@ -652,8 +652,8 @@ examples.
 == Using a local CPAN::Mini mirror
 
 Because distributions must be retrieved from a CPAN mirror, the smoker may
-cause heavy network load and will reptitively download common build 
-prerequisites.  
+cause heavy network load and will reptitively download common build
+prerequisites.
 
 An alternative is to use [CPAN::Mini] to create a local CPAN mirror and to
 point CPAN's {urllist} to the local mirror.
@@ -676,7 +676,7 @@ mirror.
 
 Alternatively, you might experiment with the alpha-quality release of
 [CPAN::Mini::Devel], which subclasses CPAN::Mini to retrieve developer
-distributions (and find-ls.gz) using the same logic as 
+distributions (and find-ls.gz) using the same logic as
 CPAN::Reporter::Smoker.
 
 == Timing out hanging tests
@@ -695,7 +695,7 @@ This option is still considered experimental.
 == Avoiding repetitive prerequisite testing
 
 Because CPAN::Reporter::Smoker satisfies all requirements from scratch, common
-dependencies (e.g. Class::Accessor) will be unpacked, built and tested 
+dependencies (e.g. Class::Accessor) will be unpacked, built and tested
 repeatedly.
 
 As of version 1.92_56, CPAN supports the {trust_test_report_history} config
@@ -737,7 +737,7 @@ When set, a prerequisite failure stops further processing.
     cpan> o conf init halt_on_failure
     cpan> o conf commit
 
-However, a disadvantage of halting early is that no DISCARD grade is 
+However, a disadvantage of halting early is that no DISCARD grade is
 recorded in the history.  The next time CPAN::Reporter::Smoker runs, the
 distribution will be tested again from scratch.  It may be better to let all
 prerequisites finish so the distribution can fail its test and be flagged
@@ -749,8 +749,8 @@ CPAN will use a lot of scratch space to download, build and test modules.  Use
 CPAN's built-in cache management configuration to let it purge the cache
 periodically if you don't want to do this manually.  When configured, the cache
 will be purged on start and after a certain number of distributions have
-been tested as determined by the {clean_cache_after} option for the 
-{start()} function. 
+been tested as determined by the {clean_cache_after} option for the
+{start()} function.
 
     $ cpan
     cpan> o conf init build_cache scan_cache
@@ -783,13 +783,13 @@ After review, send saved reports using Test::Reporter:
 
 = ENVIRONMENT
 
-Automatically sets the following environment variables to true values 
+Automatically sets the following environment variables to true values
 while running:
 
 * {AUTOMATED_TESTING} -- signal that tests are being run by an automated
 smoke testing program (i.e. don't expect interactivity)
 * {PERL_MM_USE_DEFAULT} -- accept [ExtUtils::MakeMaker] prompt() defaults
-* {PERL_EXTUTILS_AUTOINSTALL} -- set to '--defaultdeps' for default 
+* {PERL_EXTUTILS_AUTOINSTALL} -- set to '--defaultdeps' for default
 dependencies
 
 The following environment variables, if set, will modify the behavior of
@@ -799,14 +799,14 @@ testing of CPAN::Reporter::Smoker
 * {PERL_CR_SMOKER_RUNONCE} -- if true, {start()} will exit after all
 distributions are tested instead of sleeping for the {restart_delay}
 and then continuing
-* {PERL_CR_SMOKER_SHORTCUT} -- if true, {start()} will process arguments (if 
+* {PERL_CR_SMOKER_SHORTCUT} -- if true, {start()} will process arguments (if
 any) but will return before starting smoke testing; used for testing argument
 handling by {start()}
 
 = BUGS
 
-Please report any bugs or feature using the CPAN Request Tracker.  
-Bugs can be submitted through the web interface at 
+Please report any bugs or feature using the CPAN Request Tracker.
+Bugs can be submitted through the web interface at
 [http://rt.cpan.org/Dist/Display.html?Queue=CPAN-Reporter-Smoker]
 
 When submitting a bug or request, please include a test-file or a patch to an
@@ -830,7 +830,7 @@ Copyright (c) 2008 by David A. Golden
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
-You may obtain a copy of the License at 
+You may obtain a copy of the License at
 [http://www.apache.org/licenses/LICENSE-2.0]
 
 Files produced as output though the use of this software, shall not be
