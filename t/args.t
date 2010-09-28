@@ -37,6 +37,10 @@ my @good_args = (
         label => "reverse",
         args => [ 'reverse' => 1 ],
     },
+    {
+        label => "force_trust",
+        args => [ 'force_trust' => 1 ],
+    },
 );
 
 my @bad_args = (
@@ -75,6 +79,10 @@ my @bad_args = (
     {
         label => "reverse",
         args => [ 'reverse' => 2 ],
+    },
+    {
+        label => "force_trust",
+        args => [ 'force_trust' => 2 ],
     },
 );
 
