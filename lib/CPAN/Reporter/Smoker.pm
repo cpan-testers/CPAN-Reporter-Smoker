@@ -523,11 +523,11 @@ has prerequisites like build_requires satisfied from scratch
 * Automatically checks for new distributions every twelve hours or as
 otherwise specified
 * Continues until interrupted with CTRL-C
+* Checks CPAN.pm "distroprefs" to see if distributions should be skipped
+(before handing off to CPAN)
 
 Current limitations:
 
-* Does not check any skip files before handing off to CPAN to test -- use
-CPAN.pm "distroprefs" instead
 * Does not attempt to retest distributions that had reports discarded because
 of prerequisites that could not be satisfied
 
