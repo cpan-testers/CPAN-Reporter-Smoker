@@ -28,11 +28,9 @@ our @EXPORT = qw/ start /; ## no critic Export
 #--------------------------------------------------------------------------#
 
 my $perl = Probe::Perl->find_perl_interpreter;
-#my $tmp_dir = File::Temp->newdir( 'CPAN-Reporter-Smoker-XXXXXXX',
-#    DIR => File::Spec->tmpdir,
-#    UNLINK => 0,
-#);
-my $tmp_dir = File::Temp::tempdir;
+my $tmp_dir = File::Temp::tempdir(
+  'C-R-Smoker-XXXXXXXX', DIR => File::Spec->tmpdir, CLEANUP => 1
+);
 
 #--------------------------------------------------------------------------#
 # start -- start automated smoking
