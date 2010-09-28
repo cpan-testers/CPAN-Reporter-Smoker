@@ -2,6 +2,22 @@ Revision history for Perl module CPAN::Reporter::Smoker
 
 0.20
 
+    Added:
+
+    - Checks distoprefs for skipping before firing up a CPAN test process
+      [Christian Walde]
+
+    - New 'reverse' option to reverse distribution test order
+      [Serguei Trouchelle]
+
+    - New 'force_trust' option to switch on CPAN's trust_test_report_history
+      (instead of relying on the existing CPAN configuration)
+
+    Fixed:
+
+    - Temporary directories are labeled "C-R-Smoker-XXXXXX" to help
+      identify them
+
 0.19 Fri Jun  5 07:08:10 EDT 2009
 
     - Added: 'install' argument to install modules rather than just test
@@ -9,7 +25,7 @@ Revision history for Perl module CPAN::Reporter::Smoker
       the cost of disk space of installed modules.  (Patch from 
       Serguei Trouchelle)
 
-0.18
+0.18 -- NEVER RELEASED
 
     - Changed: bumped CPAN, CPAN::Reporter, Module::Build and 
       ExtUtils::MakeMaker prereqs to latest versions
