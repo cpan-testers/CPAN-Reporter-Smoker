@@ -60,7 +60,11 @@ my %spec = (
     default  => 0,
     is_valid => sub { /^[01]$/ },
   },
-  reverse => {
+  'reverse' => {
+    default => 0,
+    is_valid => sub { /^[01]$/ },
+  },
+  force_trust => {
     default => 0,
     is_valid => sub { /^[01]$/ },
   },
@@ -155,6 +159,12 @@ sub start {
       $reset_string = 'CPAN::Index->reload; $CPAN::META->reset_tested; '
     }
 
+    # Force trust_test_report_history if requested
+    my $trust_string = q{};
+    if ( $args{force_trust} ) {
+      $trust_string = '$CPAN::Config->{trust_test_report_history} = 1; '
+    }
+
     # Clean cache on start and count dists tested to trigger cache cleanup
     _clean_cache();
     my $dists_tested = 0;
@@ -193,7 +203,7 @@ sub start {
         }
         # invoke CPAN.pm to test distribution
         system($perl, "-MCPAN", "-e",
-          "\$CPAN::Config->{test_report} = 1; "
+          "\$CPAN::Config->{test_report} = 1; " . $trust_string
           . $reset_string . ($args{'install'} ? 'install' : 'test')
           . "( '$dists->[$d]' )"
         );
@@ -567,6 +577,11 @@ modules. Valid values are 0 or 1. Defaults to 0
 * {reverse} -- toggle the order in which releases are tested. When set to 1,
 testing starts from the older release not the most recent one (or the last
 distribution if --list is provided). Valid values are 0 or 1. Defaults to 0
+* {force_trust} -- toggle whether to override CPAN's
+{trust_test_report_history} option. When set to 1, {trust_test_report_history}
+is set to 1.  When set to 0, {trust_test_report_history} is left alone and
+whatever the user has configured for their CPAN client is used.
+Valid values are 0 or 1. Defaults to 0
 
 = HINTS
 
