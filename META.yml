@@ -1,13 +1,29 @@
 ---
-name: CPAN-Reporter-Smoker
-version: 0.19
+abstract: 'Turnkey CPAN Testers smoking'
 author:
   - 'David A. Golden <dagolden@cpan.org>'
-abstract: Turnkey CPAN Testers smoking
+build_requires:
+  Cwd: 3.27
+  File::Path: 0
+  IO::CaptureOutput: 1.06
+  IO::File: 0
+  Test::More: 0.62
+configure_requires:
+  Module::Build: 0.36
+generated_by: 'Module::Build version 0.3607'
 license: apache
-resources:
-  license: http://www.apache.org/licenses/LICENSE-2.0.txt
-  repository: http://dagolden.googlecode.com/svn/
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: CPAN-Reporter-Smoker
+no_index:
+  directory:
+    - examples
+    - inc
+provides:
+  CPAN::Reporter::Smoker:
+    file: lib/CPAN/Reporter/Smoker.pm
+    version: 0.19
 requires:
   CPAN: 1.93
   CPAN::HandleConfig: 0
@@ -26,21 +42,7 @@ requires:
   Term::Title: 0.01
   Test::Reporter: 1.52
   perl: 5.006
-build_requires:
-  Cwd: 3.27
-  File::Path: 0
-  IO::CaptureOutput: 1.06
-  IO::File: 0
-  Test::More: 0.62
-provides:
-  CPAN::Reporter::Smoker:
-    file: lib/CPAN/Reporter/Smoker.pm
-    version: 0.19
-generated_by: Module::Build version 0.33
-meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.4.html
-  version: 1.4
-no_index:
-  directory:
-    - examples
-    - inc
+resources:
+  license: http://www.apache.org/licenses/LICENSE-2.0.txt
+  repository: http://dagolden.googlecode.com/svn/
+version: 0.19

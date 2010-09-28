@@ -34,10 +34,10 @@ DESCRIPTION
 
     *   Continues until interrupted with CTRL-C
 
-    Current limitations:
+    *   Checks CPAN.pm "distroprefs" to see if distributions should be
+        skipped (before handing off to CPAN)
 
-    *   Does not check any skip files before handing off to CPAN to test --
-        use CPAN.pm "distroprefs" instead
+    Current limitations:
 
     *   Does not attempt to retest distributions that had reports discarded
         because of prerequisites that could not be satisfied
@@ -90,6 +90,18 @@ USAGE
         re-building and growing PERL5LIB for the cost of disk space used for
         installed modules. Valid values are 0 or 1. Defaults to 0
 
+    *   "reverse" -- toggle the order in which releases are tested. When set
+        to 1, testing starts from the older release not the most recent one
+        (or the last distribution if --list is provided). Valid values are 0
+        or 1. Defaults to 0
+
+    *   "force_trust" -- toggle whether to override CPAN's
+        "trust_test_report_history" option. When set to 1,
+        "trust_test_report_history" is set to 1. When set to 0,
+        "trust_test_report_history" is left alone and whatever the user has
+        configured for their CPAN client is used. Valid values are 0 or 1.
+        Defaults to 0
+
 HINTS
   Selection of distributions to test
     Only the most recently uploaded developer and normal releases will be
@@ -117,10 +129,10 @@ HINTS
     The skip list is based on CPAN::Mini and matches as follows:
 
          qr{(?:
-                      /(?:emb|syb|bio)?perl-\d 
-                    | /(?:parrot|ponie|kurila|Perl6-Pugs)-\d 
-                    | /perl-?5\.004 
-                    | /perl_mlb\.zip 
+               /(?:emb|syb|bio)?perl-\d
+             | /(?:parrot|ponie|kurila|Perl6-Pugs)-\d
+             | /perl-?5\.004
+             | /perl_mlb\.zip
          )}xi,
 
     Bundles and mod_perl distributions will also not be tested, though
