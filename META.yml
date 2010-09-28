@@ -23,7 +23,7 @@ no_index:
 provides:
   CPAN::Reporter::Smoker:
     file: lib/CPAN/Reporter/Smoker.pm
-    version: 0.20
+    version: 0.21
 requires:
   CPAN: 1.93
   CPAN::HandleConfig: 0
@@ -45,4 +45,4 @@ requires:
 resources:
   license: http://www.apache.org/licenses/LICENSE-2.0.txt
   repository: http://dagolden.googlecode.com/svn/
-version: 0.20
+version: 0.21
