@@ -29,14 +29,17 @@ t/CPAN/indices/README
 t/CPAN/modules/02packages.details.txt.gz
 t/CPAN/modules/03modlist.data.gz
 t/CPAN/update-checksums.pl
+t/data/disabled.yml
 t/data/dist-list
 t/DotDirs.pm
 t/lib/CPAN/MyConfig.pm
 t/lib/Test/Reporter.pm
 t/smoke-all.t
+t/smoke-disabled.t
 t/smoke-list-array.t
 t/smoke-list-file.t
 t/smoke-restart.t
+t/smoke-reverse.t
 Todo
 xt/critic.t
 xt/perlcriticrc
