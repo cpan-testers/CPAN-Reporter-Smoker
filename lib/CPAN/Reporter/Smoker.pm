@@ -60,6 +60,10 @@ my %spec = (
     default  => 0,
     is_valid => sub { /^[01]$/ },
   },
+  reverse => {
+    default => 0,
+    is_valid => sub { /^[01]$/ },
+  },
 );
 
 sub start {
@@ -136,6 +140,11 @@ sub start {
       $dists = _parse_module_index( $package, $find_ls );
 
       $CPAN::Frontend->mywarn( "Smoker: found " . scalar @$dists . " distributions on CPAN\n");
+    }
+
+    # Maybe reverse the list
+    if ( $args{'reverse'} ) {
+      $dists = [ reverse @$dists ];
     }
 
     # Check if we need to manually reset test history during each dist loop
@@ -555,6 +564,9 @@ in File::Spec->tmpdir.
 after successful testing. Can be useful to avoid prerequisite re-building
 and growing PERL5LIB for the cost of disk space used for installed
 modules. Valid values are 0 or 1. Defaults to 0
+* {reverse} -- toggle the order in which releases are tested. When set to 1,
+testing starts from the older release not the most recent one (or the last
+distribution if --list is provided). Valid values are 0 or 1. Defaults to 0
 
 = HINTS
 
