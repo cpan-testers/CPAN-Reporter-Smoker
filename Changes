@@ -1,6 +1,10 @@
 Revision history for Perl module CPAN::Reporter::Smoker
 
-0.21 - 
+0.21 -
+
+    Fixed:
+
+    - Skips t/smoke-disabled.t unless YAML is installed
 
 0.20 Mon Sep 27 21:02:21 EDT 2010
 

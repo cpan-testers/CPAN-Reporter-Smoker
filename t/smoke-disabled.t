@@ -8,7 +8,12 @@ use File::Spec;
 use IO::CaptureOutput qw/capture/;
 use t::DotDirs;
 
-plan tests =>  5 ;
+if( eval {require YAML; 1 } ) {
+  plan tests =>  5 ;
+}
+else {
+  plan skip_all => "Requires YAML module";
+}
 
 #--------------------------------------------------------------------------#
 # Setup test environment
