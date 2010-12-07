@@ -279,7 +279,7 @@ sub _get_module_index {
         "Smoker: getting $remote_file from CPAN\n");
     # CPAN.pm may not use aslocal if it's a file:// mirror
     my $aslocal_file = File::Spec->catfile( $tmp_dir, basename( $remote_file ));
-    my $actual_local = CPAN::FTP->localize( $remote_file, $aslocal_file );
+    my $actual_local = CPAN::FTP->localize( $remote_file, $aslocal_file, 1 );
     if ( ! -r $actual_local ) {
         die "Couldn't get '$remote_file' from your CPAN mirror. Halting\n";
     }
