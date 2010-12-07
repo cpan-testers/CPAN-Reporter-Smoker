@@ -1,6 +1,10 @@
 Revision history for Perl module CPAN::Reporter::Smoker
 
+{{$NEXT}}
+
     - Force localization of index files (don't allow cached copies)
+
+    - Convert distribution to Dist::Zilla management
 
 0.21 - Wed Sep 29 07:45:04 EDT 2010
 
