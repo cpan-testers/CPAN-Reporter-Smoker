@@ -14,3 +14,4 @@
 /t/dot-cpan
 /t/dot-cpanreporter
 /CPAN-Reporter-Smoker-*
+/.build
