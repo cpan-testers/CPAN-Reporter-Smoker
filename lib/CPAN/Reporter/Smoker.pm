@@ -1,23 +1,22 @@
-package CPAN::Reporter::Smoker;
 use 5.006;
 use strict;
 use warnings;
-our $VERSION = '0.21';
-$VERSION = eval $VERSION; ## no critic
+package CPAN::Reporter::Smoker;
+# ABSTRACT: Turnkey CPAN Testers smoking
 
 use Carp;
 use Config;
-use CPAN;
+use CPAN 1.93;
 use CPAN::Tarzip;
 use CPAN::HandleConfig;
-use CPAN::Reporter::History;
-use Compress::Zlib;
+use CPAN::Reporter::History 1.1702;
+use Compress::Zlib 1.2;
 use Fcntl ':flock';
 use File::Basename qw/basename dirname/;
-use File::Spec;
+use File::Spec 3.27;
 use File::Temp 0.20;
-use Probe::Perl;
-use Term::Title;
+use Probe::Perl 0.01;
+use Term::Title 0.01;
 
 use Exporter;
 our @ISA = 'Exporter';
@@ -485,19 +484,7 @@ sub _parse_module_index {
 
 __END__
 
-#--------------------------------------------------------------------------#
-# pod documentation
-#--------------------------------------------------------------------------#
-
 =begin wikidoc
-
-= NAME
-
-CPAN::Reporter::Smoker - Turnkey CPAN Testers smoking
-
-= VERSION
-
-This documentation describes version %%VERSION%%.
 
 = SYNOPSIS
 
@@ -849,30 +836,5 @@ existing test-file that illustrates the bug or desired feature.
 * [CPAN::Testers]
 * [CPAN::Mini]
 * [CPAN::Mini::Devel]
-
-= AUTHOR
-
-David A. Golden (DAGOLDEN)
-
-= COPYRIGHT AND LICENSE
-
-Copyright (c) 2008 by David A. Golden
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-[http://www.apache.org/licenses/LICENSE-2.0]
-
-Files produced as output though the use of this software, shall not be
-considered Derivative Works, but shall be considered the original work of the
-Licensor.
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-=end wikidoc
 
 =cut

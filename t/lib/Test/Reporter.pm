@@ -1,6 +1,8 @@
 # Mock Test::Reporter -- don't actually send anything
 # Adapated from helper test code in CPAN::Reporter
 package Test::Reporter;
+our $VERSION = 1.54;
+
 use Config;
 
 use vars qw/$AUTOLOAD/;

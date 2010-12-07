@@ -1,5 +1,5 @@
 # MyConfig for CPAN -- adapted from CPAN.pm test files
-use Cwd;
+use Cwd 3.27;
 my $cwd = cwd;
 my $Iswin = $^O eq "MSWin32";
 my $is_disable_test = $ENV{IS_DISABLE_TEST};

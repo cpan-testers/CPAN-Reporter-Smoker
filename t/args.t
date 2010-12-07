@@ -1,12 +1,12 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Test::More 0.62;
 
 use Config;
 use File::Spec;
 use t::DotDirs;
-use IO::CaptureOutput qw/capture/;
+use IO::CaptureOutput 1.06 qw/capture/;
 
 my @good_args = (
     {
