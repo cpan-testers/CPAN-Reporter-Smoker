@@ -2,6 +2,8 @@ Revision history for Perl module CPAN::Reporter::Smoker
 
 {{$NEXT}}
 
+    - Fix cache cleanup with newer CPAN.pm (STSC)
+
 0.22      2010-12-07 16:05:46 EST5EDT
 
     - Force localization of index files (don't allow cached copies)

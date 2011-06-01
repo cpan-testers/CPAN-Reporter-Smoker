@@ -238,12 +238,13 @@ sub start {
 #--------------------------------------------------------------------------#
 
 sub _clean_cache {
+  my $phase = $CPAN::Config->{scan_cache};
   # Possibly clean up cache if it exceeds defined size
   if ( $CPAN::META->{cachemgr} ) {
-    $CPAN::META->{cachemgr}->scan_cache();
+    $CPAN::META->{cachemgr}->scan_cache($phase);
   }
   else {
-    $CPAN::META->{cachemgr} = CPAN::CacheMgr->new(); # also scans cache
+    $CPAN::META->{cachemgr} = CPAN::CacheMgr->new($phase); # also scans cache
   }
 }
 
