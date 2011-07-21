@@ -2,6 +2,8 @@ Revision history for Perl module CPAN::Reporter::Smoker
 
 {{$NEXT}}
 
+    - Fixes test failures with CPAN::Reporter 1.19_04
+
 0.23      2011-06-01 17:54:27 America/New_York
 
     - Fix cache cleanup with newer CPAN.pm (STSC)
