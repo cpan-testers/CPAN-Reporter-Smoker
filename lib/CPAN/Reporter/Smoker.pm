@@ -2,7 +2,7 @@ use 5.006;
 use strict;
 use warnings;
 package CPAN::Reporter::Smoker;
-# ABSTRACT: Turnkey CPAN Testers smoking
+# VERSION
 
 use Carp;
 use Config;
@@ -481,7 +481,9 @@ sub _parse_module_index {
     return [ sort { $mirror{$b} <=> $mirror{$a} } keys %mirror ];
 }
 
-1; #modules must return true
+1;
+
+# ABSTRACT: Turnkey CPAN Testers smoking
 
 __END__
 
