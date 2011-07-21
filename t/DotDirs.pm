@@ -49,3 +49,4 @@ __DATA__
 email_from = johndoe@example.com
 command_timeout = 30
 send_duplicates = yes
+transport = Null
