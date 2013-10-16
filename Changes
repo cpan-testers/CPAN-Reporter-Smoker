@@ -2,6 +2,8 @@ Revision history for Perl module CPAN::Reporter::Smoker
 
 {{$NEXT}}
 
+    - Add reloading history of modules smoked (CHORNY)
+
 0.24      2011-07-21 00:12:34 America/New_York
 
     - Fixes test failures with CPAN::Reporter 1.19_04
