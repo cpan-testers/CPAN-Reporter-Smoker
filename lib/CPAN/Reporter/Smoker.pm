@@ -67,6 +67,10 @@ my %spec = (
     default => 0,
     is_valid => sub { /^[01]$/ },
   },
+  'reload_history_period' => {
+    default => 30*60,
+    is_valid => sub { /^\d+$/ },
+  },
 );
 
 sub start {
@@ -113,6 +117,7 @@ sub start {
 
   # global cache of distros smoked to speed skips on restart
   my %seen = map { $_->{dist} => 1 } CPAN::Reporter::History::have_tested();
+  my $history_loaded_at = time;
 
   SCAN_LOOP:
   while ( 1 ) {
@@ -215,6 +220,12 @@ sub start {
         _clean_cache();
         $dists_tested = 0;
       }
+      if (time - $history_loaded_at > $args{reload_history_period}) { #_reload_history
+        %seen = map { $_->{dist} => 1 } CPAN::Reporter::History::have_tested();
+        $history_loaded_at = time;
+        $CPAN::Frontend->mywarn( "List of distros smoked updated\n");
+      }
+
       next SCAN_LOOP if time - $loop_start_time > $args{restart_delay};
     }
     last SCAN_LOOP if $ENV{PERL_CR_SMOKER_RUNONCE};
@@ -572,6 +583,9 @@ distribution if --list is provided). Valid values are 0 or 1. Defaults to 0
 is set to 1.  When set to 0, {trust_test_report_history} is left alone and
 whatever the user has configured for their CPAN client is used.
 Valid values are 0 or 1. Defaults to 0
+* {reload_history_period} -- after this period in seconds, history of modules
+smoked will be reloaded when possible.
+Default value 1800 seconds (30 minutes).
 
 = HINTS
 
