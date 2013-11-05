@@ -67,6 +67,10 @@ my %spec = (
     default => 0,
     is_valid => sub { /^[01]$/ },
   },
+  filter => {
+    default => undef,
+    is_valid => sub { !defined $_ || ref $_ eq 'SUB' }
+  },
 );
 
 sub start {
@@ -177,6 +181,11 @@ sub start {
       if ( $seen{$base}++ ) {
         $CPAN::Frontend->mywarn(
           "Smoker: already tested $base [$count]\n");
+        next DIST;
+      }
+      elsif ( $args{filter} and $args{filter}->($dist) ) {
+        $CPAN::Frontend->mywarn(
+          "Smoker: dist skipped $base [$count]\n");
         next DIST;
       }
       elsif ( CPAN::Distribution->new(%{$dist})->prefs->{disabled} ) {
