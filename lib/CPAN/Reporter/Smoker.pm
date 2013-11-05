@@ -70,6 +70,9 @@ my %spec = (
   'reload_history_period' => {
     default => 30*60,
     is_valid => sub { /^\d+$/ },
+  filter => {
+    default => undef,
+    is_valid => sub { !defined $_ || ref $_ eq 'SUB' }
   },
 );
 
@@ -182,6 +185,11 @@ sub start {
       if ( $seen{$base}++ ) {
         $CPAN::Frontend->mywarn(
           "Smoker: already tested $base [$count]\n");
+        next DIST;
+      }
+      elsif ( $args{filter} and $args{filter}->($dist) ) {
+        $CPAN::Frontend->mywarn(
+          "Smoker: dist skipped $base [$count]\n");
         next DIST;
       }
       elsif ( CPAN::Distribution->new(%{$dist})->prefs->{disabled} ) {
