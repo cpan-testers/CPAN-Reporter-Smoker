@@ -70,6 +70,7 @@ my %spec = (
   'reload_history_period' => {
     default => 30*60,
     is_valid => sub { /^\d+$/ },
+  },
   filter => {
     default => undef,
     is_valid => sub { !defined $_ || ref $_ eq 'SUB' }
