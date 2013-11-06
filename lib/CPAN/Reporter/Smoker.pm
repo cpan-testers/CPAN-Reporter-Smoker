@@ -695,7 +695,7 @@ examples.
 == Using a local CPAN::Mini mirror
 
 Because distributions must be retrieved from a CPAN mirror, the smoker may
-cause heavy network load and will reptitively download common build
+cause heavy network load and will repetitively download common build
 prerequisites.
 
 An alternative is to use [CPAN::Mini] to create a local CPAN mirror and to
@@ -768,7 +768,7 @@ CPAN version 1.92_62 before trying this option.
 
 == Stopping early if a prerequisite fails
 
-Normally, CPAN.pm continues testing a distribution even if a prequisite fails
+Normally, CPAN.pm continues testing a distribution even if a prerequisite fails
 to build or fails testing.  Some distributions may pass their tests even
 without a listed prerequisite, but most just fail (and CPAN::Reporter discards
 failures if prerequisites are not met).
@@ -813,7 +813,7 @@ minimize some of the clutter to the screen as distributions are tested.
 == Saving reports to files instead of sending directly
 
 In some cases, such as when smoke testing using a development or prerelease
-toolchain module like Test-Harness, it may be prefereable to save reports to
+toolchain module like Test-Harness, it may be preferable to save reports to
 files in a directory for review prior to submitting them.  To do this,
 manually set the {transport} option in your CPAN::Reporter config file to use
 the [Test::Reporter::Transport::File] transport.
