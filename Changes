@@ -2,6 +2,8 @@ Revision history for Perl module CPAN::Reporter::Smoker
 
 {{$NEXT}}
 
+0.25      2013-11-06 10:06:15 America/New_York
+
     - Add reloading history of modules smoked (CHORNY)
 
     - Add support for custom filtering (CHORNY)
