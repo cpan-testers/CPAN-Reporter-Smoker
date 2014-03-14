@@ -576,6 +576,8 @@ must be of the form 'AUTHOR/Dist-Name-0.00.tar.gz'
 smoke testing. This will reload indices to search for new distributions
 and restart testing from the most recent distribution. Must be a positive
 integer; Defaults to 43200 seconds (12 hours)
+* {skip_dev_versions} -- if true, unindexed distributions will not be tested.
+Valid values are 0 or 1. Defauilts to 0.
 * {set_term_title} -- toggle for whether the terminal titlebar will be
 updated with the distribution being smoke tested and the starting time
 of the test. Helps determine if a test is hung and which distribution
