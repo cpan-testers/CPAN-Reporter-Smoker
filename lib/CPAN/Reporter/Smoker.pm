@@ -75,6 +75,10 @@ my %spec = (
     default => undef,
     is_valid => sub { !defined $_ || ref $_ eq 'SUB' }
   },
+  skip_dev_versions => {
+    default => 0,
+    is_valid => sub { /^[01]$/ },
+  },
 );
 
 sub start {
@@ -149,7 +153,7 @@ sub start {
       CPAN::Index->reload;
       $CPAN::Frontend->mywarn( "Smoker: scanning and sorting index\n");
 
-      $dists = _parse_module_index( $package, $find_ls );
+      $dists = _parse_module_index( $package, $find_ls, $args{skip_dev_versions} );
 
       $CPAN::Frontend->mywarn( "Smoker: found " . scalar @$dists . " distributions on CPAN\n");
     }
@@ -381,7 +385,7 @@ sub _base_name {
 #--------------------------------------------------------------------------#-
 
 sub _parse_module_index {
-    my ( $packages, $file_ls ) = @_;
+    my ( $packages, $file_ls, $skip_dev_versions ) = @_;
 
     # first walk the packages list
     # and build an index
@@ -469,6 +473,8 @@ sub _parse_module_index {
 
             # skip unless there's a matching base from the packages file
             next unless $latest{$base_name};
+
+            next if $skip_dev_versions;
 
             # keep only the latest
             $latest_dev{$base_name} ||= { datetime => 0 };
