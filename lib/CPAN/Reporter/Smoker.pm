@@ -15,6 +15,7 @@ use Fcntl ':flock';
 use File::Basename qw/basename dirname/;
 use File::Spec 3.27;
 use File::Temp 0.20;
+use List::Util qw/shuffle/;
 use Probe::Perl 0.01;
 use Term::Title 0.01;
 
@@ -60,6 +61,10 @@ my %spec = (
     is_valid => sub { /^[01]$/ },
   },
   'reverse' => {
+    default => 0,
+    is_valid => sub { /^[01]$/ },
+  },
+  'random' => {
     default => 0,
     is_valid => sub { /^[01]$/ },
   },
@@ -161,6 +166,11 @@ sub start {
     # Maybe reverse the list
     if ( $args{'reverse'} ) {
       $dists = [ reverse @$dists ];
+    }
+
+    # Maybe shuffle the list
+    if ( $args{'random'} ) {
+      $dists = [ shuffle @$dists ];
     }
 
     # Check if we need to manually reset test history during each dist loop
@@ -595,6 +605,8 @@ modules. Valid values are 0 or 1. Defaults to 0
 * {reverse} -- toggle the order in which releases are tested. When set to 1,
 testing starts from the older release not the most recent one (or the last
 distribution if --list is provided). Valid values are 0 or 1. Defaults to 0
+* {random} -- toggle whether to randomize distribution test order. When set to 1,
+the list of releases is shuffled. Valid values are 0 or 1. Defaults to 0
 * {force_trust} -- toggle whether to override CPAN's
 {trust_test_report_history} option. When set to 1, {trust_test_report_history}
 is set to 1.  When set to 0, {trust_test_report_history} is left alone and

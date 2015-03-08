@@ -2,6 +2,10 @@ Revision history for Perl module CPAN::Reporter::Smoker
 
 {{$NEXT}}
 
+    [ADDED]
+
+    - New option 'random' to randomize distribution test order (GREGOA)
+
 0.26      2014-03-14 15:52:43+01:00 Europe/Paris
 
     [ADDED]

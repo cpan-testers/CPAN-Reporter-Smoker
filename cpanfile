@@ -10,6 +10,7 @@ requires "Fcntl" => "0";
 requires "File::Basename" => "0";
 requires "File::Spec" => "3.27";
 requires "File::Temp" => "0.20";
+requires "List::Util" => "0";
 requires "Module::Build" => "0.30";
 requires "Probe::Perl" => "0.01";
 requires "Term::Title" => "0.01";
