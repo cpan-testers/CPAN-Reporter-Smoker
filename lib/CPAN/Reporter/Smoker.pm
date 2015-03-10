@@ -15,7 +15,7 @@ use Fcntl ':flock';
 use File::Basename qw/basename dirname/;
 use File::Spec 3.27;
 use File::Temp 0.20;
-use List::Util qw/shuffle/;
+use List::Util 1.03 qw/shuffle/;
 use Probe::Perl 0.01;
 use Term::Title 0.01;
 
