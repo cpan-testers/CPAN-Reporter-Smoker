@@ -1,6 +1,7 @@
 # MyConfig for CPAN -- adapted from CPAN.pm test files
 use Cwd 3.27;
 my $cwd = cwd;
+my $dot_cpan = "DOT_CPAN";
 my $Iswin = $^O eq "MSWin32";
 my $is_disable_test = $ENV{IS_DISABLE_TEST};
 $CPAN::Config = {
@@ -11,24 +12,24 @@ $CPAN::Config = {
                  $is_disable_test ? ( 'prefs_dir' => qq[$cwd/t/data] ) : (),
                  'auto_commit' => 0,
                  'build_cache' => q[100],
-                 'build_dir' => qq[$cwd/t/dot-cpan/build],
+                 'build_dir' => qq[$cwd/t/$dot_cpan/build],
                  #'bzip2' => q[/bin/bzip2],
                  'cache_metadata' => q[1],
                  colorize_output=>0,
-                 'cpan_home' => qq[$cwd/t/dot-cpan],
+                 'cpan_home' => qq[$cwd/t/$dot_cpan],
                  #'curl' => q[],
                  #'ftp' => q[],
                  'ftp_proxy' => q[],
                  'getcwd' => q[cwd],
                  #'gpg' => q[/usr/bin/gpg],
                  #'gzip' => q[/bin/gzip],
-                 'histfile' => qq[$cwd/t/dot-cpan/histfile],
+                 'histfile' => qq[$cwd/t/$dot_cpan/histfile],
                  'histsize' => q[100],
                  'http_proxy' => q[],
                  'inactivity_timeout' => q[0],
                  'index_expire' => q[1],
                  'inhibit_startup_message' => q[0],
-                 'keep_source_where' => qq[$cwd/t/dot-cpan/sources],
+                 'keep_source_where' => qq[$cwd/t/$dot_cpan/sources],
                  #'lynx' => q[],
                  #'make' => q[/usr/bin/make],
                  'make_arg' => q[],
