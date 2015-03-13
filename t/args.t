@@ -41,6 +41,18 @@ my @good_args = (
         label => "force_trust",
         args => [ 'force_trust' => 1 ],
     },
+    {
+        label => "skip_dev_versions",
+        args => [ 'skip_dev_versions' => 1 ],
+    },
+    {
+        label => "filter",
+        args => [ 'filter' => sub {} ],
+    },
+    {
+        label => "random",
+        args => [ 'random' => 1 ],
+    },
 );
 
 my @bad_args = (
@@ -83,6 +95,10 @@ my @bad_args = (
     {
         label => "force_trust",
         args => [ 'force_trust' => 2 ],
+    },
+    {
+        label => "filter",
+        args => [ 'filter' => 'test' ],
     },
 );
 

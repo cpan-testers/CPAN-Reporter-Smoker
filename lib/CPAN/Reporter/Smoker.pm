@@ -79,7 +79,7 @@ my %spec = (
   },
   filter => {
     default => undef,
-    is_valid => sub { !defined $_ || ref $_ eq 'SUB' }
+    is_valid => sub { !defined $_ || ref $_ eq 'CODE' }
   },
   skip_dev_versions => {
     default => 0,
