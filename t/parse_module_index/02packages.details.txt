@@ -17,3 +17,4 @@ Test::Harness           2.62    P/PE/PETDANCE/Test-Harness-2.62.tar.gz
 Apache2::Process        0.009   P/PG/PGOLLUCCI/mod_perl-2.0.3.tar.gz
 Apache                  1.27    G/GO/GOZER/mod_perl-1.30.tar.gz
 Test                    1       T/TE/TEST/Test-Test-1.01.tar.gz
+Test2                   1       T/TE/TEST/Test-Test2-1.01.tar.gz
