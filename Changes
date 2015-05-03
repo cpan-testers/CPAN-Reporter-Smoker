@@ -2,6 +2,10 @@ Revision history for Perl module CPAN::Reporter::Smoker
 
 {{$NEXT}}
 
+    [ADDED]
+
+    - More tests (CHORNY)
+
 0.27      2015-03-10 04:33:13-04:00 America/New_York
 
     [ADDED]
@@ -44,7 +48,7 @@ Revision history for Perl module CPAN::Reporter::Smoker
 
     Added:
 
-    - Checks distoprefs for skipping before firing up a CPAN test process
+    - Checks distroprefs for skipping before firing up a CPAN test process
       [Christian Walde]
 
     - New 'reverse' option to reverse distribution test order
