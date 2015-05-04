@@ -85,6 +85,10 @@ my %spec = (
     default => 0,
     is_valid => sub { /^[01]$/ },
   },
+  '_start_from_timestamp' => {
+    default => 0,
+    is_valid => sub { /^(?:[\d.]{8}|0)$/ },
+  },
 );
 
 sub start {
@@ -159,7 +163,7 @@ sub start {
       CPAN::Index->reload;
       $CPAN::Frontend->mywarn( "Smoker: scanning and sorting index\n");
 
-      $dists = _parse_module_index( $package, $find_ls, $args{skip_dev_versions} );
+      $dists = _parse_module_index( $package, $find_ls, $args{skip_dev_versions}, $args{_start_from_timestamp} );
 
       $CPAN::Frontend->mywarn( "Smoker: found " . scalar @$dists . " distributions on CPAN\n");
     }
@@ -396,7 +400,7 @@ sub _base_name {
 #--------------------------------------------------------------------------#-
 
 sub _parse_module_index {
-    my ( $packages, $file_ls, $skip_dev_versions ) = @_;
+    my ( $packages, $file_ls, $skip_dev_versions, $start_from_timestamp ) = @_;
 
     # first walk the packages list
     # and build an index
@@ -454,6 +458,8 @@ sub _parse_module_index {
         next unless $stat{name} =~ $re{target_dir};
         next unless $stat{name} =~ $re{archive};
 
+        next if $start_from_timestamp && $stat{datetime} < $start_from_timestamp;
+
         # skip if not AUTHOR/tarball
         # skip perls
         my $base_id = _get_base_id($stat{name});
@@ -498,10 +504,14 @@ sub _parse_module_index {
         }
     }
 
-    # pick up anything from packages that wasn't found find-ls
-    for my $name ( keys %latest ) {
-        my $base_id = $latest{$name}{base_id};
-        $mirror{$base_id} = $latest{$name}{datetime} unless $mirror{$base_id};
+    if ( !$start_from_timestamp ) {
+        # pick up anything from packages that wasn't found in find-ls
+        # usually because find-ls is updated more rarely than packages
+        # as it is missing from find-ls, timestamp would be set to 0
+        for my $name ( keys %latest ) {
+            my $base_id = $latest{$name}{base_id};
+            $mirror{$base_id} = $latest{$name}{datetime} unless $mirror{$base_id};
+        }
     }
 
     # for dev versions, it must be newer than the latest version of
