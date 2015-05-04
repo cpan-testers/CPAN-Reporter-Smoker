@@ -567,6 +567,7 @@ Current limitations:
 
 * Does not attempt to retest distributions that had reports discarded because
 of prerequisites that could not be satisfied
+* Does not test trial version if there is no non-trial version
 
 == WARNING -- smoke testing is risky
 
