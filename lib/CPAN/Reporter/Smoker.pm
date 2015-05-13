@@ -89,6 +89,10 @@ my %spec = (
     default => 0,
     is_valid => sub { /^(?:[\d.]{8}|0)$/ },
   },
+  _hook_after_test => {
+    default => undef,
+    is_valid => sub { !defined $_ || ref $_ eq 'CODE' }
+  },
 );
 
 sub start {
@@ -239,7 +243,16 @@ sub start {
           . $reset_string . ($args{'install'} ? 'install' : 'test')
           . "( '$dists->[$d]' )"
         );
-        _prompt_quit( $? & 127 ) if ( $? & 127 );
+        my $interrupted = 0;
+        if ( $? & 127 ) {
+          $interrupted = 1;
+          _prompt_quit( $? & 127 ) ;
+        }
+
+        if ($args{_hook_after_test}) {
+          $args{_hook_after_test}->($dist, $interrupted);
+        }
+        
         # cleanup and record keeping
         unlink $args{status_file} if -f $args{status_file};
         $dists_tested++;

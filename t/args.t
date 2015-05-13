@@ -53,6 +53,10 @@ my @good_args = (
         label => "random",
         args => [ 'random' => 1 ],
     },
+    {
+        label => "_hook_after_test",
+        args => [ 'filter' => sub {} ],
+    },
 );
 
 my @bad_args = (
@@ -98,6 +102,10 @@ my @bad_args = (
     },
     {
         label => "filter",
+        args => [ 'filter' => 'test' ],
+    },
+    {
+        label => "_hook_after_test",
         args => [ 'filter' => 'test' ],
     },
 );
