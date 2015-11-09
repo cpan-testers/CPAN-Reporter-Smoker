@@ -19,6 +19,9 @@ use File::Temp 0.20;
 use List::Util 1.03 qw/shuffle/;
 use Probe::Perl 0.01;
 use Term::Title 0.01;
+use File::HomeDir 1.00;
+use Time::HiRes 1.9726 qw(time);
+use DateTime::Tiny 1.04;
 
 use Exporter;
 our @ISA = 'Exporter';
@@ -32,6 +35,11 @@ my $perl = Probe::Perl->find_perl_interpreter;
 my $tmp_dir = File::Temp::tempdir(
   'C-R-Smoker-XXXXXXXX', DIR => File::Spec->tmpdir, CLEANUP => 1
 );
+my $stats_fh = undef;
+my $total_dists = 0;
+my $curr_start = 0;
+my $curr_dists = 0;
+my $tests_start = 0;
 
 #--------------------------------------------------------------------------#
 # start -- start automated smoking
@@ -53,6 +61,10 @@ my %spec = (
     default => File::Spec->catfile( File::Spec->tmpdir, "smoker-status-$$.txt" ),
     is_valid => sub { -d dirname( $_ ) },
   },
+  stats_file => {
+      default => File::Spec->catfile(File::HomeDir->my_home, '.cpanreporter', 'smoker_stats.csv'), 
+      is_valid => sub { -d dirname($_) }, 
+  }, 
   list => {
     default => undef,
     is_valid => sub { !defined $_ || ref $_ eq 'ARRAY' || -r $_ }
@@ -132,10 +144,17 @@ sub start {
   # Win32 SIGINT propogates all the way to us, so trap it before we smoke
   # Must come *after* checklock() to override CPAN's $SIG{INT}
   local $SIG{INT} = \&_prompt_quit;
+  local $SIG{USR1} = \&_show_progress if (_check_signal());
 
   # Master loop
   # loop counter will increment with each restart - useful for testing
   my $loop_counter = 0;
+
+  if ($args{stats_file}) {
+
+      open(my $stats_fh, '>>', $args{stats_file}) or die "Cannot create $args{stats_file}: $!"
+
+  }
 
   # global cache of distros smoked to speed skips on restart
   my %seen = map { $_->{dist} => 1 } CPAN::Reporter::History::have_tested();
@@ -170,6 +189,14 @@ sub start {
       $dists = _parse_module_index( $package, $find_ls, $args{skip_dev_versions}, $args{_start_from_timestamp} );
 
       $CPAN::Frontend->mywarn( "Smoker: found " . scalar @$dists . " distributions on CPAN\n");
+      
+      if ($args{stats_file}) {
+          # not correct, but good enough
+          my $elapsed = time() - $loop_start_time;
+          my $now = DateTime::Tiny->now();
+          print $stats_fh join('|', 'Index-scan', $now->as_string(), $elapsed);
+      }
+
     }
 
     # Maybe reverse the list
@@ -199,7 +226,8 @@ sub start {
     # Clean cache on start and count dists tested to trigger cache cleanup
     _clean_cache();
     my $dists_tested = 0;
-
+    $total_dists = $#{$dists};
+    $tests_start = time();
     # Start smoking
     DIST:
     for my $d ( 0 .. $#{$dists} ) {
@@ -223,7 +251,8 @@ sub start {
       }
       else {
         # record distribution being smoked
-        my $time = scalar localtime();
+        $curr_start = time();
+        my $time = scalar localtime($curr_start);
         my $msg = "$base [$count] at $time";
         if ( $args{set_term_title} ) {
           Term::Title::set_titlebar( "Smoking $msg" );
@@ -237,12 +266,14 @@ sub start {
           flock $status_fh, LOCK_UN;
           close $status_fh;
         }
+        $curr_start = time();
         # invoke CPAN.pm to test distribution
         system($perl, "-MCPAN", "-e",
           "\$CPAN::Config->{test_report} = 1; " . $trust_string
           . $reset_string . ($args{'install'} ? 'install' : 'test')
           . "( '$dists->[$d]' )"
         );
+
         my $interrupted = 0;
         if ( $? & 127 ) {
           $interrupted = 1;
@@ -256,10 +287,19 @@ sub start {
         # cleanup and record keeping
         unlink $args{status_file} if -f $args{status_file};
         $dists_tested++;
+        $curr_dists = $dists_tested;
+        if ($args{stats_file}) {
+            my $finished = time();
+            #ETHER/Dist-Zilla-Plugin-ModuleBuildTiny-Fallback-0.022.tar.gz
+            my ($author, $dist) = split('/', $dists->[$d]);
+            $dist =~ s/\.tar\.gz$//;
+            print $stats_fh join('|', 'Distro-Time', $author, $dist, ($finished - $curr_start));
+            $curr_start = 0;
+        }
       }
       if ( $dists_tested >= $args{clean_cache_after} ) {
         _clean_cache();
-        $dists_tested = 0;
+        $curr_dists = $dists_tested = 0;
       }
       if (time - $history_loaded_at > $args{reload_history_period}) { #_reload_history
         %seen = map { $_->{dist} => 1 } CPAN::Reporter::History::have_tested();
@@ -315,7 +355,43 @@ sub _prompt_quit {
     );
     my $answer = <STDIN>;
     CPAN::cleanup(), exit 0 unless substr( lc($answer), 0, 1) eq 'y';
+    if (defined($stats_fh)) {
+
+        close($stats_fh) or warn "Cannot close stats file handle: $!";
+
+    }
     return;
+}
+
+# checks if the USR1 signal is supported on the OS
+sub _check_signal {
+
+    my $result = 0;
+    foreach my $name(split(' ', $Config{sig_name})) {
+        if ($name eq 'USR1') {
+            $result = 1;
+            last;
+        }
+    }
+    return $result;
+
+}
+
+sub _show_progress {
+
+    my $start = time();
+    # distros per minute
+    my $dpm = ($curr_dists/($tests_start - $start)) * 60;
+    local $| = 1;
+    print '+----------------------------------------+', "\n";
+    print 'CPAN::Reporter::Smoker quick stats:', "\n";
+    print "Doing $curr_dists of $total_dists ($dpm)\n";
+    print '+----------------------------------------+', "\n";
+    print 'Press ENTER to continue', "\n";
+    my $dumb = <STDIN>;
+    # must remove the time spent here until the tester press ENTER from the distro test time
+    $curr_start += (time() - $start);
+
 }
 
 #--------------------------------------------------------------------------#
