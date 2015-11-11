@@ -36,10 +36,6 @@ my $tmp_dir = File::Temp::tempdir(
   'C-R-Smoker-XXXXXXXX', DIR => File::Spec->tmpdir, CLEANUP => 1
 );
 my $stats_fh = undef;
-my $total_dists = 0;
-my $curr_start = 0;
-my $curr_dists = 0;
-my $tests_start = 0;
 
 #--------------------------------------------------------------------------#
 # start -- start automated smoking
@@ -108,9 +104,16 @@ my %spec = (
 );
 
 sub start {
+    
   my %args = map { $_ => $spec{$_}{default} } keys %spec;
   croak "Invalid arguments to start(): must be key/value pairs"
   if @_ % 2;
+
+  my $total_dists = 0;
+  my $curr_start = 0;
+  my $curr_dists = 0;
+  my $tests_start = 0;
+
   while ( @_ ) {
     my ($key, $value) = splice @_, 0, 2;
     local $_ = $value; # alias for validator
@@ -144,7 +147,6 @@ sub start {
   # Win32 SIGINT propogates all the way to us, so trap it before we smoke
   # Must come *after* checklock() to override CPAN's $SIG{INT}
   local $SIG{INT} = \&_prompt_quit;
-  local $SIG{USR1} = \&_show_progress if (_check_signal());
 
   # Master loop
   # loop counter will increment with each restart - useful for testing
@@ -152,7 +154,7 @@ sub start {
 
   if ($args{stats_file}) {
 
-      open(my $stats_fh, '>>', $args{stats_file}) or die "Cannot create $args{stats_file}: $!"
+      open($stats_fh, '>>', $args{stats_file}) or die "Cannot create $args{stats_file}: $!"
 
   }
 
@@ -194,7 +196,7 @@ sub start {
           # not correct, but good enough
           my $elapsed = time() - $loop_start_time;
           my $now = DateTime::Tiny->now();
-          print $stats_fh join('|', 'Index-scan', $now->as_string(), $elapsed);
+          print $stats_fh join('|', 'Index-scan', $now->as_string(), $elapsed),"\n";
       }
 
     }
@@ -226,7 +228,7 @@ sub start {
     # Clean cache on start and count dists tested to trigger cache cleanup
     _clean_cache();
     my $dists_tested = 0;
-    $total_dists = $#{$dists};
+    $total_dists = scalar(@{$dists});
     $tests_start = time();
     # Start smoking
     DIST:
@@ -290,12 +292,14 @@ sub start {
         $curr_dists = $dists_tested;
         if ($args{stats_file}) {
             my $finished = time();
+            my $now = DateTime::Tiny->now();
             #ETHER/Dist-Zilla-Plugin-ModuleBuildTiny-Fallback-0.022.tar.gz
             my ($author, $dist) = split('/', $dists->[$d]);
             $dist =~ s/\.tar\.gz$//;
-            print $stats_fh join('|', 'Distro-Time', $author, $dist, ($finished - $curr_start));
+            print $stats_fh join('|', 'Distro-Time', $author, $dist, $now->as_string, ($finished - $curr_start)), "\n";
             $curr_start = 0;
         }
+        $curr_start += _show_progress($curr_dists, $tests_start, $total_dists);
       }
       if ( $dists_tested >= $args{clean_cache_after} ) {
         _clean_cache();
@@ -309,6 +313,13 @@ sub start {
 
       next SCAN_LOOP if time - $loop_start_time > $args{restart_delay};
     }
+
+    # resetting global vars
+    $total_dists = 0;
+    $curr_start = 0;
+    $curr_dists = 0;
+    $tests_start = 0;
+
     last SCAN_LOOP if $ENV{PERL_CR_SMOKER_RUNONCE};
     last SCAN_LOOP if $args{list};
     # if here, we are out of distributions to test, so sleep
@@ -379,18 +390,27 @@ sub _check_signal {
 
 sub _show_progress {
 
-    my $start = time();
-    # distros per minute
-    my $dpm = ($curr_dists/($tests_start - $start)) * 60;
-    local $| = 1;
-    print '+----------------------------------------+', "\n";
-    print 'CPAN::Reporter::Smoker quick stats:', "\n";
-    print "Doing $curr_dists of $total_dists ($dpm)\n";
-    print '+----------------------------------------+', "\n";
-    print 'Press ENTER to continue', "\n";
-    my $dumb = <STDIN>;
-    # must remove the time spent here until the tester press ENTER from the distro test time
-    $curr_start += (time() - $start);
+$DB::single = 1;
+    my ($curr_dists, $tests_start, $total_dists) = @_;
+
+    my $fifo = File::Spec->catfile(File::HomeDir->my_home, '.cpanreporter', 'report_progress');
+
+    if ( -e $fifo ) {
+
+        my $now = time();
+        # distros per minute
+        my $dpm = ($curr_dists/($now - $tests_start)) * 60;
+        open(my $out,'>', $fifo) or die "Cannot write to $fifo: $!";
+        print $out '+----------------------------------------+', "\n";
+        print $out 'CPAN::Reporter::Smoker quick stats:', "\n";
+        print $out "Doing $curr_dists of $total_dists ($dpm)\n";
+        print $out '+----------------------------------------+', "\n";
+        close($out);
+        # must remove the time spent here until the tester press ENTER from the distro test time
+        return (time() - $now);
+    } else {
+        return 0;
+    }
 
 }
 
