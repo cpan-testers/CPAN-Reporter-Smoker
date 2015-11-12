@@ -22,6 +22,8 @@ use Term::Title 0.01;
 use File::HomeDir 1.00;
 use Time::HiRes 1.9726 qw(time);
 use DateTime::Tiny 1.04;
+use IO::Socket;
+use Storable qw(freeze);
 
 use Exporter;
 our @ISA = 'Exporter';
@@ -374,43 +376,20 @@ sub _prompt_quit {
     return;
 }
 
-# checks if the USR1 signal is supported on the OS
-sub _check_signal {
-
-    my $result = 0;
-    foreach my $name(split(' ', $Config{sig_name})) {
-        if ($name eq 'USR1') {
-            $result = 1;
-            last;
-        }
-    }
-    return $result;
-
-}
-
 sub _show_progress {
 
-$DB::single = 1;
     my ($curr_dists, $tests_start, $total_dists) = @_;
-
-    my $fifo = File::Spec->catfile(File::HomeDir->my_home, '.cpanreporter', 'report_progress');
-
-    if ( -e $fifo ) {
-
-        my $now = time();
-        # distros per minute
-        my $dpm = ($curr_dists/($now - $tests_start)) * 60;
-        open(my $out,'>', $fifo) or die "Cannot write to $fifo: $!";
-        print $out '+----------------------------------------+', "\n";
-        print $out 'CPAN::Reporter::Smoker quick stats:', "\n";
-        print $out "Doing $curr_dists of $total_dists ($dpm)\n";
-        print $out '+----------------------------------------+', "\n";
-        close($out);
-        # must remove the time spent here until the tester press ENTER from the distro test time
-        return (time() - $now);
-    } else {
-        return 0;
-    }
+    my $now = time();
+    my $server = 'localhost';
+    my $port = 2007;
+    my $max_len = 5000;
+    my $sock = IO::Socket::INET->new(Proto => 'udp', PeerAddr => "$server:$port" ) or die $@;
+    my $dps = ($curr_dists/($now - $tests_start));
+    my %status = ( curr_dists => $curr_dists, total_dists => $total_dists, dps => $dps );
+    $sock->send(freeze(\%status)) or die "send() failed: $!";
+    $sock->close();
+    # must remove the time spent here until the tester press ENTER from the distro test time
+    return (time() - $now);
 
 }
 
