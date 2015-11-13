@@ -23,7 +23,7 @@ use File::HomeDir 1.00;
 use Time::HiRes 1.9726 qw(time);
 use DateTime::Tiny 1.04;
 use IO::Socket;
-use Storable qw(freeze);
+use Storable qw(nfreeze);
 
 use Exporter;
 our @ISA = 'Exporter';
@@ -60,7 +60,8 @@ my %spec = (
     is_valid => sub { -d dirname( $_ ) },
   },
   stats_file => {
-      default => File::Spec->catfile(File::HomeDir->my_home, '.cpanreporter', 'smoker_stats.csv'), 
+      # default could be "File::Spec->catfile(File::HomeDir->my_home, '.cpanreporter', 'smoker_stats.csv')"
+      default => 0, 
       is_valid => sub { -d dirname($_) }, 
   }, 
   list => {
@@ -70,6 +71,14 @@ my %spec = (
   install => {
     default  => 0,
     is_valid => sub { /^[01]$/ },
+  },
+  rep_addr => {
+    default => 'localhost',
+    is_valid => sub { /^\w+$/ }
+  },
+  rep_port => {
+    default => 2007,
+    is_valid => sub { /^\d+$/ }
   },
   'reverse' => {
     default => 0,
@@ -301,7 +310,7 @@ sub start {
             print $stats_fh join('|', 'Distro-Time', $author, $dist, $now->as_string, ($finished - $curr_start)), "\n";
             $curr_start = 0;
         }
-        $curr_start += _show_progress($curr_dists, $tests_start, $total_dists);
+        $curr_start += _show_progress($curr_dists, $tests_start, $total_dists, $args{rep_port}, $args{rep_addr});
       }
       if ( $dists_tested >= $args{clean_cache_after} ) {
         _clean_cache();
@@ -378,15 +387,13 @@ sub _prompt_quit {
 
 sub _show_progress {
 
-    my ($curr_dists, $tests_start, $total_dists) = @_;
+    my ($curr_dists, $tests_start, $total_dists, $peer_port, $peer_addr) = @_;
     my $now = time();
-    my $server = 'localhost';
-    my $port = 2007;
     my $max_len = 5000;
-    my $sock = IO::Socket::INET->new(Proto => 'udp', PeerAddr => "$server:$port" ) or die $@;
-    my $dps = ($curr_dists/($now - $tests_start));
-    my %status = ( curr_dists => $curr_dists, total_dists => $total_dists, dps => $dps );
-    $sock->send(freeze(\%status)) or die "send() failed: $!";
+    my $sock = IO::Socket::INET->new(Proto => 'udp', PeerAddr => $peer_addr, PeerPort => $peer_port ) or die $@;
+    my $dpm = ($curr_dists/(($now - $tests_start)/60));
+    my %status = ( curr_dists => $curr_dists, total_dists => $total_dists, dpm => $dpm );
+    $sock->send(nfreeze(\%status)) or die "send() failed: $!";
     $sock->close();
     # must remove the time spent here until the tester press ENTER from the distro test time
     return (time() - $now);
