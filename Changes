@@ -10,6 +10,10 @@ Revision history for Perl module CPAN::Reporter::Smoker
 
     - New experimental option _hook_after_test (CHORNY)
 
+    [FIXED]
+
+    - Skips Perl 6 distributions
+
 0.27      2015-03-10 04:33:13-04:00 America/New_York
 
     [ADDED]

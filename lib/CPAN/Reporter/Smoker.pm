@@ -480,6 +480,9 @@ sub _parse_module_index {
 
         next if $base_id =~ $re{perls};
 
+        # skip Perl6 distros: AUTHOR/Perl6/...
+        next if $base_id =~ m{\A\w+/Perl6/};
+
         my $base_name = _base_name( $base_id );
 
         # if $base_id matches 02packages, then it is the latest version
