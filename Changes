@@ -2,6 +2,10 @@ Revision history for Perl module CPAN::Reporter::Smoker
 
 {{$NEXT}}
 
+    [FIXED]
+
+    - Fixed tests for perls without '.' in @INC.
+
 0.28      2016-02-29 19:06:11-05:00 America/New_York
 
     [ADDED]
