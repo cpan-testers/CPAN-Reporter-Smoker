@@ -5,7 +5,8 @@ use Test::More 0.62;
 
 use Config;
 use File::Spec;
-use t::DotDirs;
+use lib 't/lib';
+use DotDirs;
 use IO::CaptureOutput 1.06 qw/capture/;
 
 my @good_args = (
@@ -117,10 +118,10 @@ plan tests =>  1 + 2 * ( @good_args + @bad_args );
 #--------------------------------------------------------------------------#
 
 # Setup CPAN::Reporter configuration and add mock lib path to @INC
-$ENV{PERL_CPAN_REPORTER_DIR} = t::DotDirs->prepare_cpan_reporter;
+$ENV{PERL_CPAN_REPORTER_DIR} = DotDirs->prepare_cpan_reporter;
 
 # Setup CPAN dotdir with custom CPAN::MyConfig
-t::DotDirs->prepare_cpan;
+DotDirs->prepare_cpan;
 
 my ($stdout, $stderr);
 

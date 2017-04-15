@@ -1,4 +1,4 @@
-package t::DotDirs;
+package DotDirs;
 
 # stolen/adapted from local_utils.pm in the CPAN.pm distro
 

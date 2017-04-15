@@ -6,7 +6,8 @@ use Test::More;
 use Config;
 use File::Spec;
 use IO::CaptureOutput qw/capture/;
-use t::DotDirs;
+use lib 't/lib';
+use DotDirs;
 
 plan tests =>  6 ;
 
@@ -15,10 +16,10 @@ plan tests =>  6 ;
 #--------------------------------------------------------------------------#
 
 # Setup CPAN::Reporter configuration and add mock lib path to @INC
-$ENV{PERL_CPAN_REPORTER_DIR} = t::DotDirs->prepare_cpan_reporter;
+$ENV{PERL_CPAN_REPORTER_DIR} = DotDirs->prepare_cpan_reporter;
 
 # Setup CPAN dotdir with custom CPAN::MyConfig
-t::DotDirs->prepare_cpan;
+DotDirs->prepare_cpan;
 
 my ($stdout, $stderr);
 
