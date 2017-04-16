@@ -46,6 +46,7 @@ my %WriteMakefileArgs = (
     "IO::CaptureOutput" => "1.06",
     "IO::File" => 0,
     "Test::More" => "0.62",
+    "lib" => 0,
     "vars" => 0
   },
   "VERSION" => "0.29",
@@ -80,6 +81,7 @@ my %FallbackPrereqs = (
   "Term::Title" => "0.01",
   "Test::More" => "0.62",
   "Test::Reporter" => "1.58",
+  "lib" => 0,
   "strict" => 0,
   "vars" => 0,
   "warnings" => 0
