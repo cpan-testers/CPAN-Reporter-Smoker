@@ -19,6 +19,11 @@ use File::Temp 0.20;
 use List::Util 1.03 qw/shuffle/;
 use Probe::Perl 0.01;
 use Term::Title 0.01;
+use File::HomeDir 1.00;
+use Time::HiRes 1.9726 qw(time);
+use DateTime::Tiny 1.04;
+use IO::Socket;
+use Storable qw(nfreeze);
 
 use Exporter;
 our @ISA = 'Exporter';
@@ -32,6 +37,7 @@ my $perl = Probe::Perl->find_perl_interpreter;
 my $tmp_dir = File::Temp::tempdir(
   'C-R-Smoker-XXXXXXXX', DIR => File::Spec->tmpdir, CLEANUP => 1
 );
+my $stats_fh = undef;
 
 #--------------------------------------------------------------------------#
 # start -- start automated smoking
@@ -53,6 +59,11 @@ my %spec = (
     default => File::Spec->catfile( File::Spec->tmpdir, "smoker-status-$$.txt" ),
     is_valid => sub { -d dirname( $_ ) },
   },
+  stats_file => {
+      # default could be "File::Spec->catfile(File::HomeDir->my_home, '.cpanreporter', 'smoker_stats.csv')"
+      default => 0, 
+      is_valid => sub { -d dirname($_) }, 
+  }, 
   list => {
     default => undef,
     is_valid => sub { !defined $_ || ref $_ eq 'ARRAY' || -r $_ }
@@ -60,6 +71,14 @@ my %spec = (
   install => {
     default  => 0,
     is_valid => sub { /^[01]$/ },
+  },
+  rep_addr => {
+    default => 'localhost',
+    is_valid => sub { /^\w+$/ }
+  },
+  rep_port => {
+    default => 2007,
+    is_valid => sub { /^\d+$/ }
   },
   'reverse' => {
     default => 0,
@@ -96,9 +115,16 @@ my %spec = (
 );
 
 sub start {
+    
   my %args = map { $_ => $spec{$_}{default} } keys %spec;
   croak "Invalid arguments to start(): must be key/value pairs"
   if @_ % 2;
+
+  my $total_dists = 0;
+  my $curr_start = 0;
+  my $curr_dists = 0;
+  my $tests_start = 0;
+
   while ( @_ ) {
     my ($key, $value) = splice @_, 0, 2;
     local $_ = $value; # alias for validator
@@ -137,6 +163,12 @@ sub start {
   # loop counter will increment with each restart - useful for testing
   my $loop_counter = 0;
 
+  if ($args{stats_file}) {
+
+      open($stats_fh, '>>', $args{stats_file}) or die "Cannot create $args{stats_file}: $!"
+
+  }
+
   # global cache of distros smoked to speed skips on restart
   my %seen = map { $_->{dist} => 1 } CPAN::Reporter::History::have_tested();
   my $history_loaded_at = time;
@@ -170,6 +202,14 @@ sub start {
       $dists = _parse_module_index( $package, $find_ls, $args{skip_dev_versions}, $args{_start_from_timestamp} );
 
       $CPAN::Frontend->mywarn( "Smoker: found " . scalar @$dists . " distributions on CPAN\n");
+      
+      if ($args{stats_file}) {
+          # not correct, but good enough
+          my $elapsed = time() - $loop_start_time;
+          my $now = DateTime::Tiny->now();
+          print $stats_fh join('|', 'Index-scan', $now->as_string(), $elapsed),"\n";
+      }
+
     }
 
     # Maybe reverse the list
@@ -199,7 +239,8 @@ sub start {
     # Clean cache on start and count dists tested to trigger cache cleanup
     _clean_cache();
     my $dists_tested = 0;
-
+    $total_dists = scalar(@{$dists});
+    $tests_start = time();
     # Start smoking
     DIST:
     for my $d ( 0 .. $#{$dists} ) {
@@ -223,7 +264,8 @@ sub start {
       }
       else {
         # record distribution being smoked
-        my $time = scalar localtime();
+        $curr_start = time();
+        my $time = scalar localtime($curr_start);
         my $msg = "$base [$count] at $time";
         if ( $args{set_term_title} ) {
           Term::Title::set_titlebar( "Smoking $msg" );
@@ -237,12 +279,14 @@ sub start {
           flock $status_fh, LOCK_UN;
           close $status_fh;
         }
+        $curr_start = time();
         # invoke CPAN.pm to test distribution
         system($perl, "-MCPAN", "-e",
           "\$CPAN::Config->{test_report} = 1; " . $trust_string
           . $reset_string . ($args{'install'} ? 'install' : 'test')
           . "( '$dists->[$d]' )"
         );
+
         my $interrupted = 0;
         if ( $? & 127 ) {
           $interrupted = 1;
@@ -256,10 +300,21 @@ sub start {
         # cleanup and record keeping
         unlink $args{status_file} if -f $args{status_file};
         $dists_tested++;
+        $curr_dists = $dists_tested;
+        if ($args{stats_file}) {
+            my $finished = time();
+            my $now = DateTime::Tiny->now();
+            #ETHER/Dist-Zilla-Plugin-ModuleBuildTiny-Fallback-0.022.tar.gz
+            my ($author, $dist) = split('/', $dists->[$d]);
+            $dist =~ s/\.tar\.gz$//;
+            print $stats_fh join('|', 'Distro-Time', $author, $dist, $now->as_string, ($finished - $curr_start)), "\n";
+            $curr_start = 0;
+        }
+        $curr_start += _show_progress($curr_dists, $tests_start, $total_dists, $args{rep_port}, $args{rep_addr});
       }
       if ( $dists_tested >= $args{clean_cache_after} ) {
         _clean_cache();
-        $dists_tested = 0;
+        $curr_dists = $dists_tested = 0;
       }
       if (time - $history_loaded_at > $args{reload_history_period}) { #_reload_history
         %seen = map { $_->{dist} => 1 } CPAN::Reporter::History::have_tested();
@@ -269,6 +324,13 @@ sub start {
 
       next SCAN_LOOP if time - $loop_start_time > $args{restart_delay};
     }
+
+    # resetting global vars
+    $total_dists = 0;
+    $curr_start = 0;
+    $curr_dists = 0;
+    $tests_start = 0;
+
     last SCAN_LOOP if $ENV{PERL_CR_SMOKER_RUNONCE};
     last SCAN_LOOP if $args{list};
     # if here, we are out of distributions to test, so sleep
@@ -315,7 +377,27 @@ sub _prompt_quit {
     );
     my $answer = <STDIN>;
     CPAN::cleanup(), exit 0 unless substr( lc($answer), 0, 1) eq 'y';
+    if (defined($stats_fh)) {
+
+        close($stats_fh) or warn "Cannot close stats file handle: $!";
+
+    }
     return;
+}
+
+sub _show_progress {
+
+    my ($curr_dists, $tests_start, $total_dists, $peer_port, $peer_addr) = @_;
+    my $now = time();
+    my $max_len = 5000;
+    my $sock = IO::Socket::INET->new(Proto => 'udp', PeerAddr => $peer_addr, PeerPort => $peer_port ) or die $@;
+    my $dpm = ($curr_dists/(($now - $tests_start)/60));
+    my %status = ( curr_dists => $curr_dists, total_dists => $total_dists, dpm => $dpm );
+    $sock->send(nfreeze(\%status)) or die "send() failed: $!";
+    $sock->close();
+    # must remove the time spent here until the tester press ENTER from the distro test time
+    return (time() - $now);
+
 }
 
 #--------------------------------------------------------------------------#
