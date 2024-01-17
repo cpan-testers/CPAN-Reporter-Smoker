@@ -3,7 +3,7 @@ use strict;
 use warnings;
 package CPAN::Reporter::Smoker;
 
-our $VERSION = '0.30';
+our $VERSION = '0.31';
 
 use Carp;
 use Config;
